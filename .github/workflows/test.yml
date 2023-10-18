@@ -1,0 +1,130 @@
+name: Test
+
+# If a pull-request is pushed then cancel all previously running jobs related
+# to that pull-request
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true 
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+env:
+  PY_COLORS: 1
+
+jobs:
+  unit:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python:
+          - version: "3.8"
+            toxenv: py38
+          - version: "3.9"
+            toxenv: py39
+          - version: "3.10"
+            toxenv: py310
+          - version: "3.11"
+            toxenv: py311
+        include:
+          - os: windows-latest
+            python:
+              version: "3.11"
+              toxenv: py311
+    steps:
+      - uses: actions/checkout@v4.1.0
+      - name: Set up Python ${{ matrix.python.version }}
+        uses: actions/setup-python@v4.7.0
+        with:
+          python-version: ${{ matrix.python.version }}
+      - name: Install dependencies
+        run: pip install tox
+      - name: Run tests
+        run: tox -e ${{ matrix.python.toxenv }} --skip-missing-interpreters false
+
+  functional:
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        toxenv: [cli]
+    steps:
+      - uses: actions/checkout@v4.1.0
+      - name: Set up Python
+        uses: actions/setup-python@v4.7.0
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: pip install tox
+      - name: Run tests
+        run: tox -e ${{ matrix.toxenv }} -- --override-ini='log_cli=True'
+      - name: Upload codecov coverage
+        uses: codecov/codecov-action@v3.1.4
+        with:
+          files: ./coverage.xml
+          flags: ${{ matrix.toxenv }}
+          fail_ci_if_error: false
+
+  coverage:
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        toxenv: [cover]
+    steps:
+      - uses: actions/checkout@v4.1.0
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4.7.0
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: pip install tox
+      - name: Run tests
+        env:
+          PY_COLORS: 1
+        run: tox -e ${{ matrix.toxenv }}
+      - name: Upload codecov coverage
+        uses: codecov/codecov-action@v3.1.4
+        with:
+          files: ./coverage.xml
+          flags: unit
+          fail_ci_if_error: false
+
+  dist:
+    runs-on: ubuntu-latest
+    name: wheel
+    steps:
+    - uses: actions/checkout@v4.1.0
+    - uses: actions/setup-python@v4.7.0
+      with:
+        python-version: "3.11"
+    - name: Install dependencies
+      run: |
+        pip install -r requirements-test.txt
+    - name: Build package
+      run: python -m build -o dist/
+    - uses: actions/upload-artifact@v3.1.3
+      with:
+        name: dist
+        path: dist
+
+  test:
+    runs-on: ubuntu-latest
+    needs: [dist]
+    steps:
+    - uses: actions/checkout@v4.1.0
+    - name: Set up Python
+      uses: actions/setup-python@v4.7.0
+      with:
+        python-version: '3.11'
+    - uses: actions/download-artifact@v3.0.2
+      with:
+        name: dist
+        path: dist
+    - name: install dist/*.whl and requirements
+      run: pip install dist/*.whl -r requirements-test.txt tox

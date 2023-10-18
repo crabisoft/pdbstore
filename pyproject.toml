@@ -1,0 +1,141 @@
+[build-system]
+requires = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pdbstore"
+version = "0.0.1"
+description="manage PDB and PE files through a local symbols store"
+requires-python = ">=3.8"
+license = { text = "MIT" }
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: English",
+    "Operating System :: POSIX",
+    "Operating System :: Microsoft :: Windows",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+readme = "README.rst"
+authors = [{ name = "Jacques Raphanel", email = "jrp@crabisoft.fr" }]
+keywords=["development", "symstore", "pdb", "pdbstore"]
+dependencies = ["colorama", "pefile", "Jinja2"]
+
+[project.scripts]
+pdbstore = "pdbstore.__main__:main"
+
+[project.urls]
+changelog = "https://github.com/crabisoft/pdbstore/blob/main/CHANGELOG.md"
+documentation = "https://pdbstore.readthedocs.io"
+homepage = "https://pdbstore.readthedocs.io"
+issues = "https://github.com/crabisoft/pdbstore/issues"
+repository = "http://github.com/crabisoft/pdbstore.git"
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+order_by_type = false
+
+[tool.mypy]
+files = "."
+exclude = ["docs/.*","build/.*"]
+
+# 'strict = true' is equivalent to the following:
+check_untyped_defs = true
+disallow_any_generics = true
+disallow_incomplete_defs = true
+disallow_subclassing_any = true
+disallow_untyped_decorators = true
+disallow_untyped_defs = true
+no_implicit_optional = true
+no_implicit_reexport = true
+strict_equality = true
+warn_redundant_casts = true
+warn_return_any = true
+warn_unused_configs = true
+warn_unused_ignores = true
+
+# The following need to have changes made to be able to enable them:
+# disallow_untyped_calls = true
+
+[[tool.mypy.overrides]] # Overrides for currently untyped modules
+module = [
+    "tests.*",
+    "tests.cli.*",
+    "tests.meta.*",
+    "tests.unit.*",
+    "tests.unit.io.*"
+]
+ignore_errors = true
+
+[tool.semantic_release]
+assets = []
+branch = "main"
+version_variables = ["pdbstore/_version.py:__version__"]
+version_toml = ["pyproject.toml:project.version"]
+commit_message = "chore: release v{version}"
+commit_author = "semantic-release <semantic-release>"
+commit_parser = "angular"
+logging_use_named_masks = false
+major_on_zero = true
+tag_format = "v{version}"
+build_command = """
+    python -m pip install build -rrequirements.txt && \
+    python -m build . && \
+    python installer/build.py
+"""
+
+[tool.semantic_release.commit_parser_options]
+allowed_tags = [
+  "ci",
+  "docs",
+  "feat",
+  "fix",
+  "perf",
+  "style",
+  "refactor",
+  "test",
+  "chore"
+]
+minor_tags = ["feat"]
+patch_tags = ["fix", "perf"]
+
+[tool.semantic_release.changelog]
+template_dir = "templates"
+changelog_file = "CHANGELOG.md"
+exclude_commit_patterns = []
+
+[tool.semantic_release.publish]
+dist_glob_patterns = ["dist/*", "installer/dist/*.zip", "installer/dist/*.tar.gz"]
+upload_to_vcs_release = true
+
+[tool.pylint.messages_control]
+max-line-length = 100
+max-return = 10
+jobs = 0  # Use auto-detected number of multiple processes to speed up Pylint.
+disable = [
+    "missing-module-docstring",
+    "too-many-branches",
+    "too-many-statements",
+]
+max-args=15 # Maximum number of arguments for function / method.
+max-attributes=20   # Maximum number of attributes for a class (see R0902).
+max-local=25    # Maximum number of local variables
+max-bool-expr=8 # Maximum number of boolean expressions in an if statement (see R0916).
+
+
+[tool.pytest.ini_options]
+xfail_strict = true
+
+# If 'log_cli=True' the following apply
+# NOTE: If set 'log_cli_level' to 'DEBUG' will show a log of all of the HTTP requests
+# made in functional tests.
+log_cli_level = "INFO"
+log_cli_format = "%(asctime)s.%(msecs)03d [%(levelname)8s] (%(filename)s:%(funcName)s:L%(lineno)s) %(message)s"
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"

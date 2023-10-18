@@ -1,0 +1,18 @@
+{
+    "tool": "pdbstore",
+    "version": "{{report.__version__}}",
+    "count": {{report.statistics | length}},
+    "data": [
+    {%- for key, value in report.statistics | dictsort %}
+        {
+            "product": "{{key[0]}}",
+            "version": "{{key[1]}}",
+            "transactions": {{value.trans_count}},
+            "files": {{value.files_count}},
+            "size": {{"%.3f" | format(value.disk_space/1024/1024)}},
+            "shared": {{"%.3f" | format(value.disk_space/1024/1024)}}
+        }{%- if not loop.last %},{%- endif %}
+    {%- endfor %}
+    ],
+    "elapse": {{"%.3f"|format(generation_time(false))}}
+}

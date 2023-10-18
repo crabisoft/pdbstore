@@ -1,0 +1,9 @@
+mock
+coverage
+pytest==7.1.2
+pytest-console-scripts==1.3.1
+pytest-cov
+pytest-subprocess
+build==1.0.3
+setuptools==68.2.2
+wheel==0.41.2

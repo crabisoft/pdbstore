@@ -1,0 +1,24 @@
+{
+    "tool": "pdbstore",
+    "version": "{{report.__version__}}",
+    "count": {{report.statistics | length}},
+    "data": [
+    {%- for key, value in report.statistics | dictsort %}
+        {
+            "filename": "{{key[0]}}",
+            "filehash": "{{key[1]}}",
+            "size": {{"%.3f" | format(value.file_size/1024/1024)}},
+            "references": [
+            {%- for pkey, count in value.products_info | dictsort %}
+                {
+                    "product": "{{pkey[0]}}",
+                    "version": "{{pkey[1]}}",
+                    "count": {{count}}
+                }{%- if not loop.last %},{%- endif %}
+            {%- endfor %}
+            ]
+        }{%- if not loop.last %},{%- endif %}
+    {%- endfor %}
+    ],
+    "elapse": {{"%.3f"|format(generation_time(false))}}
+}

@@ -1,0 +1,38 @@
+name: pre_commit
+
+# If a pull-request is pushed then cancel all previously running jobs related
+# to that pull-request
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true 
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      .github/workflows/pre_commit.yml
+      .pre-commit-config.yaml
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/pre_commit.yml
+      - .pre-commit-config.yaml
+
+env:
+  PY_COLORS: 1
+
+jobs:
+
+  pre_commit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.1.0
+      - uses: actions/setup-python@v4.7.0
+        with:
+          python-version: "3.11"
+      - name: install tox
+        run: pip install tox
+      - name: pre-commit
+        run: tox -e pre-commit

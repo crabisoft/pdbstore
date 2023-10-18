@@ -1,0 +1,6 @@
+__author__ = "Jacques Raphanel"
+__copyright__ = "Copyright 2023 CrabiSoft"
+__email__ = "jrp@crabisoft.fr"
+__license__ = "MIT"
+__title__ = "pdbstore"
+__version__ = "0.0.1"

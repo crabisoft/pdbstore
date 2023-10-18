@@ -1,0 +1,12 @@
+Transaction ID | Status  | Count   | Product Name    | Product Version  | Disk (MB)   | Shared (MB) | Files & Size
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+{%- for key, value in report.statistics | dictsort %}
+ {{"%-14s"|format(key[0])}}| {{"%-8s"|format(value.status)}}| {{"%-8s"|format(key[1])}}| {{"%-16s"|format(value.product)}}| {{"%-17s"|format(value.version)}}| {{"%-12.3f"|format(value.disk_space/1024/1024)}}| {{"%-12.3f"|format(value.shared_space/1024/1024)}}|{{" "}}
+{%- for value in value.files | sort(attribute='path')%}
+{%- if loop.first %}
+{{- "%-30s"|format(value.path)}} ({{"%.3f"|format(value.size/1024/1024)}} Mb)
+{%- else %}
+ {{"%-14s"|format("")}}| {{"%-8s"|format("")}}| {{"%-8s"|format(key[1])}}| {{"%-16s"|format("")}}| {{"%-17s"|format("")}}| {{"%-12s"|format("")}}| {{"%-12s"|format("")}}| {{ "%-30s"|format(value.path)}} ({{"%.3f"|format(value.size/1024/1024)}} Mb)
+{%- endif %}
+{%- endfor %}
+{%- endfor %}

@@ -1,0 +1,57 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+from setuptools import find_packages, setup
+
+
+def get_version() -> str:
+    version = ""
+    with open("pdbstore/_version.py", "r", encoding="utf-8") as f:
+        for line in f:
+            if line.startswith("__version__"):
+                version = eval(line.split("=")[-1])
+                break
+    return version
+
+
+def get_readme() -> str:
+    readme = ""
+    with open("README.rst", "r", encoding="utf-8") as f:
+        readme = f.read()
+    return readme
+
+
+setup(
+    long_description=get_readme(),
+    long_description_content_type="text/x-rst",
+    url="https://github.com/crabisoft/pdbstore",
+    classifiers=[
+        "Development Status :: 4 - Beta",
+        "Environment :: Console",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: MIT License",
+        "Natural Language :: English",
+        "Operating System :: POSIX",
+        "Operating System :: Microsoft :: Windows",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+    ],
+    license="MIT",
+    keywords="development symstore pdb pdbstore",
+    packages=find_packages(exclude=["docs", "tests*"]),
+    package_data={
+        "pdbstore": ["py.typed"],
+    },
+    install_requires=["colorama", "pefile", "Jinja2"],
+    license_files="LICENSE",
+    python_requires=">=3.8.0",
+    entry_points={
+        "console_scripts": [
+            "pdbstore=pdbstore.__main__:main",
+            "pdbstat=pdbstore.tools.pdbstat:main",
+        ],
+    },
+)

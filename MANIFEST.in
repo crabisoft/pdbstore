@@ -1,0 +1,8 @@
+include setup.py README.rst MANIFEST.in COPYING pyproject.toml AUTHORS.rst CHANGELOG.md
+include tox.ini requirements*.txt
+
+recursive-include tests *
+include docs/Makefile docs/make.bat
+recursive-include docs/source *
+recursive-include pdbstore/templates *.md *.tmpl
+

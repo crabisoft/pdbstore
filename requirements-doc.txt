@@ -1,0 +1,9 @@
+-r requirements.txt
+myst-parser
+sphinx==6.2.1
+sphinx_rtd_theme
+renku-sphinx-theme
+sphinxcontrib-spelling
+sphinx-notfound-page
+jinja2<=3.0.3
+colorama>=0.4.3, <0.5.0

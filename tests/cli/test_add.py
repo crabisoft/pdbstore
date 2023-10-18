@@ -1,0 +1,157 @@
+from unittest import mock
+
+import pytest
+
+from pdbstore import store
+from pdbstore.cli import cli
+from pdbstore.cli.exit_codes import (
+    ERROR_COMMAND_NAME,
+    ERROR_ENCOUNTERED,
+    ERROR_GENERAL,
+    ERROR_UNEXPECTED,
+    SUCCESS,
+)
+
+
+def test_incomplete_no_action():
+    """test empty command-line"""
+
+    with mock.patch("sys.argv", []):
+        assert cli.main() == ERROR_COMMAND_NAME
+
+
+@pytest.mark.parametrize(
+    "argv",
+    [
+        ["--store-dir", "/user/a/dir"],
+        ["--product-name", "myproduct"],
+        ["--product-version", "1.0.0"],
+        [
+            "--store-dir",
+            "/user/a/dir",
+            "--product-name",
+            "myproduct",
+        ],
+        [
+            "--store-dir",
+            "/user/a/dir",
+            "--product-name",
+            "myproduct",
+            "--product-version",
+            "1.0.0",
+        ],
+    ],
+)
+def test_incomplete(argv):
+    """test empty command-line"""
+
+    # Test through direct command-line
+    with mock.patch("sys.argv", ["pdbstore", "add"] + argv):
+        assert cli.main() == ERROR_UNEXPECTED
+
+    # Test with direct call to main function
+    assert cli.main(["add"] + argv) == ERROR_UNEXPECTED
+
+
+def test_complete(tmp_store_path, test_data_dir):
+    """test complete command-line"""
+
+    argv = [
+        "--store-dir",
+        str(tmp_store_path),
+        "--product-name",
+        "myproduct",
+        "--product-version",
+        "1.0.0",
+        str(test_data_dir / "dummyapp.pdb"),
+    ]
+
+    # Test through direct command-line
+    with mock.patch(
+        "sys.argv",
+        ["pdbstore", "add"] + argv,
+    ):
+        assert store.Store(tmp_store_path).next_transaction_id == "0000000001"
+        assert len(store.Store(tmp_store_path).history) == 0
+        assert cli.main() == SUCCESS
+        assert len(store.Store(tmp_store_path).history) == 1
+        assert store.Store(tmp_store_path).next_transaction_id == "0000000002"
+
+    # Test with direct call to main function
+    assert cli.main(["add"] + argv) == SUCCESS
+    assert store.Store(tmp_store_path).next_transaction_id == "0000000003"
+    assert len(store.Store(tmp_store_path).history) == 2
+
+
+def test_complete_with_invalid_file(tmp_store_path, test_data_dir):
+    """test complete command-line"""
+
+    argv = [
+        "--store-dir",
+        str(tmp_store_path),
+        "--product-name",
+        "myproduct",
+        "--product-version",
+        "1.0.0",
+        str(test_data_dir / "invalid.exe"),
+    ]
+
+    # Test through direct command-line
+    with mock.patch(
+        "sys.argv",
+        ["pdbstore", "add"] + argv,
+    ):
+        assert cli.main() == ERROR_ENCOUNTERED
+
+    # Test with direct call to main function
+    assert cli.main(["add"] + argv) == ERROR_ENCOUNTERED
+
+
+def test_complete_with_config(dynamic_config_file, test_data_dir):
+    """test complete command-line with configuration file usage"""
+    argv = [
+        "--config-file",
+        str(dynamic_config_file),
+        "--store",
+        "release",
+        "--product-name",
+        "myproduct",
+        "--product-version",
+        "1.0.0",
+        str(test_data_dir / "dummyapp.pdb"),
+    ]
+
+    # Test through direct command-line
+    with mock.patch(
+        "sys.argv",
+        ["pdbstore", "add"] + argv,
+    ):
+        assert cli.main() == SUCCESS
+
+    # Test with direct call to main function
+    assert cli.main(["add"] + argv) == SUCCESS
+
+
+@mock.patch("pdbstore.io.is_compression_supported", mock.MagicMock(return_value=False))
+def test_no_compression(tmp_store_path, test_data_dir):
+    """Test when comporession not supported"""
+    argv = [
+        "--store-dir",
+        str(tmp_store_path),
+        "--product-name",
+        "myproduct",
+        "--product-version",
+        "1.0.0",
+        "--compress",
+        str(test_data_dir / "dummyapp.pdb"),
+    ]
+
+    # Test through direct command-line
+    with mock.patch(
+        "sys.argv",
+        ["pdbstore", "add"] + argv,
+    ):
+        assert cli.main() == ERROR_GENERAL
+
+    # Test with direct call to main function
+    assert cli.main(["add"] + argv) == ERROR_GENERAL
