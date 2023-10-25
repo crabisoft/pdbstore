@@ -15,7 +15,7 @@ jobs:
         name: Analyze input arguments
         run: |
           if [ "${{ secrets.RELEASE_TYPE }}" != "Auto"]; then
-            echo "force_arg=$(echo "$cmd_arg")" >> ${GITHUB_OUTPUT}
+            echo "force_arg=${{ secrets.RELEASE_TYPE }}" >> ${GITHUB_OUTPUT}
           else
             echo "force_arg=" >> ${GITHUB_OUTPUT}
           fi
@@ -68,7 +68,6 @@ jobs:
       needs: [release]
       runs-on: windows-latest
       concurrency: windows-build
-      environment: pypi.org
       if: github.repository == 'crabisoft/pdbstore' && ${{ needs.release.outputs.released == 'true' }}
       steps:
         - uses: actions/checkout@v4.1.0
@@ -93,7 +92,6 @@ jobs:
       needs: [release, windows-build]
       runs-on: ubuntu-latest
       concurrency: publish
-      environment: pypi.org
       steps:
         - uses: actions/checkout@v4.1.0
           with:
