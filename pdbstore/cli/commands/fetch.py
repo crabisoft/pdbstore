@@ -32,22 +32,21 @@ def fetch_text_formatter(summary: Summary) -> None:
             for queryd in cur.files:
                 symbol_path = queryd.get("path", "")
                 file_path = queryd.get("input", "")
-                if symbol_path:
-                    if (
-                        OpStatus.from_str(queryd.get("status", OpStatus.SKIPPED))
-                        == OpStatus.SUCCESS
-                    ):
-                        file_len = len(file_path)
-                    else:
-                        file_len = len(symbol_path)
-                    if (file_len + 2) > input_len:
-                        input_len = file_len + 2
+                if not file_path:
+                    file_path = symbol_path
+                    symbol_path = None
+                file_len = len(symbol_path or file_path)
+                if (file_len + 2) > input_len:
+                    input_len = file_len + 2
 
     cli_out_write(f"{'Input File':<{input_len}s}{'Compressed':^10s} Symbol File")
     for cur in summary.iterator():
         for queryd in cur.files:
             symbol_path = queryd.get("path", "")
             file_path = queryd.get("input", "")
+            if not file_path:
+                file_path = symbol_path
+                symbol_path = None
             status: OpStatus = OpStatus.from_str(queryd.get("status", OpStatus.SKIPPED))
             error_msg = queryd.get("error")
 
@@ -193,19 +192,16 @@ def fetch(parser: PDBStoreArgumentParser, *args: Any) -> Any:
                 dct = summary.add_file(util.path_to_str(symbol_path), OpStatus.SUCCESS)
                 dct["input"] = util.path_to_str(file_path)
             else:
-                print("not found")
                 summary.add_file(
                     util.path_to_str(file_path),
                     OpStatus.FAILED,
                     f"Failed to extract from transaction {entry[0].transaction_id}",
                 )
         except UnknowFileTypeError:
-            print("oups")
             summary.add_file(
                 util.path_to_str(file_path), OpStatus.SKIPPED, "Not a known file type"
             )
         except FileNotExistsError:
-            print("not found", file_path)
             summary.add_file(
                 util.path_to_str(file_path), OpStatus.FAILED, "File not found"
             )
