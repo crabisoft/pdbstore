@@ -4,16 +4,7 @@ on:
   schedule:
     - cron: '0 0 28 * *'  # Monthly auto-release
   workflow_dispatch:      # Manual trigger for quick fixes
-    inputs:
-        Upgrade:
-            description: 'How to handle version increment?'
-            required: true
-            type: choice
-            options: 
-                - Auto
-                - Major
-                - Minor
-                - Patch
+
 jobs:
   inputs:
     runs-on: ubuntu-latest
@@ -23,7 +14,7 @@ jobs:
       - id: init
         name: Analyze input arguments
         run: |
-          if [ "${{ secrets.RELEASE_TYPE }}" != "Auto"]
+          if [ "${{ secrets.RELEASE_TYPE }}" != "Auto"]; then
             echo "force_arg=$(echo "$cmd_arg")" >> ${GITHUB_OUTPUT}
           else
             echo "force_arg=" >> ${GITHUB_OUTPUT}
