@@ -206,7 +206,7 @@ class Cli:
         if isinstance(exception, SystemExit):
             if exception.code != 0:
                 output.error(f"Exiting with code: {exception.code}")
-            return exception.code
+            return ERROR_ENCOUNTERED
 
         assert isinstance(exception, Exception)
         output.error(traceback.format_exc())

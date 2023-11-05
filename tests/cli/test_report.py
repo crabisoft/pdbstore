@@ -30,17 +30,17 @@ def test_no_options():
         assert cli.cli.main() == ERROR_SUBCOMMAND_NAME
 
 
-def test_complete(tmp_store_path, test_data_dir):
+def test_complete(tmp_store_dir, test_data_native_dir):
     """test complete command-line"""
 
     argv = [
         "--store-dir",
-        str(tmp_store_path),
+        str(tmp_store_dir),
         "--product-name",
         "myproduct",
         "--product-version",
         "1.0.0",
-        str(test_data_dir / "dummyapp.pdb"),
+        str(test_data_native_dir / "dummyapp.pdb"),
     ]
 
     # Test through direct command-line when file not present yet
@@ -68,18 +68,18 @@ def test_complete(tmp_store_path, test_data_dir):
 
 
 @pytest.mark.parametrize("report_type", ["product", "file", "transaction"])
-def test_report_types(report_type, tmp_store_path, test_data_dir):
+def test_report_types(report_type, tmp_store_dir, test_data_native_dir):
     """test all supported report types"""
 
     # Generate temporary store
     argv = [
         "--store-dir",
-        str(tmp_store_path),
+        str(tmp_store_dir),
         "--product-name",
         "myproduct",
         "--product-version",
         "1.0.0",
-        str(test_data_dir / "dummyapp.pdb"),
+        str(test_data_native_dir / "dummyapp.pdb"),
     ]
     assert cli.cli.main(["add"] + argv) == SUCCESS
     assert cli.cli.main(["report", report_type] + argv[0:2]) == SUCCESS
@@ -89,18 +89,18 @@ def test_report_types(report_type, tmp_store_path, test_data_dir):
     "out_format",
     ["text", "markdown", "json", "html"],
 )
-def test_report_formats(out_format, tmp_path, tmp_store_path, test_data_dir):
+def test_report_formats(out_format, tmp_path, tmp_store_dir, test_data_native_dir):
     """test all supported report types"""
 
     # Generate temporary store
     argv = [
         "--store-dir",
-        str(tmp_store_path),
+        str(tmp_store_dir),
         "--product-name",
         "myproduct",
         "--product-version",
         "1.0.0",
-        str(test_data_dir / "dummyapp.pdb"),
+        str(test_data_native_dir / "dummyapp.pdb"),
     ]
     assert cli.cli.main(["add"] + argv) == SUCCESS
     report_path = tmp_path / "test.report"

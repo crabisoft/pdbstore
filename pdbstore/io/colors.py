@@ -45,7 +45,7 @@ def init_colorama(stream: object) -> None:
     :param stream: The stream to be used to determine if colorred mode is supported not
     """
     if color_enabled(stream):
-        if os.getenv("CLICOLOR_FORCE", "0") != "0":
+        if os.getenv(const.ENV_CLICOLOR_FORCE, "0") != "0":
             # Otherwise it is not really forced if colorama doesn't feel it
             colorama.init(strip=False, convert=False)
         else:

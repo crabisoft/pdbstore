@@ -7,9 +7,9 @@ from pdbstore.cli.command import pdbstore_command, PDBStoreArgumentParser
 from pdbstore.exceptions import (
     CommandLineError,
     FileNotExistsError,
+    InvalidPEFile,
     PDBAbortExecution,
     PDBStoreException,
-    UnknowFileTypeError,
 )
 from pdbstore.io.output import cli_out_write, PDBStoreOutput
 from pdbstore.store import (
@@ -69,7 +69,7 @@ def fetch_text_formatter(summary: Summary) -> None:
                     f"{str(file_path):<{input_len}s}{'':^10s} {error_msg or 'File not found'}"
                 )
 
-    total = summary.failed(True) + summary.skipped(True)
+    total = summary.failed(True)
     if total > 0:
         raise PDBAbortExecution(total)
 
@@ -96,7 +96,7 @@ def fetch_json_formatter(summary: Summary) -> None:
 
     cli_out_write(json.dumps(out, indent=4))
 
-    total = summary.failed(True) + summary.skipped(True)
+    total = summary.failed(True)
     if total > 0:
         raise PDBAbortExecution(total)
 
@@ -197,19 +197,19 @@ def fetch(parser: PDBStoreArgumentParser, *args: Any) -> Any:
                     OpStatus.FAILED,
                     f"Failed to extract from transaction {entry[0].transaction_id}",
                 )
-        except UnknowFileTypeError:
+        except InvalidPEFile:
             summary.add_file(
-                util.path_to_str(file_path), OpStatus.SKIPPED, "Not a known file type"
+                util.path_to_str(file_path), OpStatus.SKIPPED, "Not a valid pe file"
             )
         except FileNotExistsError:
             summary.add_file(
                 util.path_to_str(file_path), OpStatus.FAILED, "File not found"
             )
-        except PDBStoreException as exp:
+        except PDBStoreException as exp:  # pragma: no cover
             summary.add_file(
                 util.path_to_str(file_path), OpStatus.FAILED, "ex:" + str(exp)
             )
-        except Exception as exc:  # pylint: disable=broad-except
+        except Exception as exc:  # pylint: disable=broad-except # pragma: no cover
             summary.add_file(util.path_to_str(file_path), OpStatus.FAILED, str(exc))
             output.error(exc)
             output.error("unexpected error when querying information for {file_path}")

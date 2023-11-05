@@ -166,7 +166,6 @@ def add(parser: PDBStoreArgumentParser, *args: Any) -> Any:
     else:
         summary = Summary(None, OpStatus.SKIPPED, TransactionType.ADD)
 
-    print(f"error count = {len(errors_list)}")
     for error in errors_list:
         summary.add_file(error[0], OpStatus.FAILED, error[1])
     # Clean oldest version

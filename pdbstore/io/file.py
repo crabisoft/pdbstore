@@ -8,6 +8,7 @@ import pefile as pe
 from pdbstore import util
 from pdbstore.exceptions import (
     FileNotExistsError,
+    InvalidPEFile,
     ParseFileError,
     PDBSignatureNotFoundError,
     ReadFileError,
@@ -131,6 +132,8 @@ def extract_dbg_info(file_path: PathLike) -> Optional[Tuple[str, str]]:
 
     :raise:
         :FileNotExistsError: The specified file doesn't exists
+        :UnknowFileTypeError: Unsupported file type
+        :InvalidPEFile: Invalid pe file (ex: exe or dll)
     """
     file_path = util.path_to_str(file_path)
     if not file_path or not os.path.exists(file_path):
@@ -191,9 +194,10 @@ def extract_dbg_info(file_path: PathLike) -> Optional[Tuple[str, str]]:
             )
         else:
             PDBStoreOutput().error(f"{symbol_type_data[:4]} unsupported symbol type")
-            return None
-
+            raise InvalidPEFile(file_path)
         return pdb_filename, guid
+    except pe.PEFormatError as pef:
+        raise InvalidPEFile(file_path) from pef
     except BaseException:  # pylint: disable=broad-exception-caught
         pass
     return None

@@ -86,6 +86,13 @@ class UnknowFileTypeError(PDBStoreException):
         PDBStoreException.__init__(self, f"{pathname} : not a known file type")
 
 
+class InvalidPEFile(PDBStoreException):
+    """Not a valid PE file"""
+
+    def __init__(self, pathname: PathLike) -> None:
+        PDBStoreException.__init__(self, f"{pathname} : not a valid pe file")
+
+
 class FileNotExistsError(PDBStoreException):
     """File not found"""
 

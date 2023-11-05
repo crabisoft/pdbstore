@@ -1,4 +1,5 @@
 import os
+import re
 from pathlib import Path
 
 from pdbstore.typing import Any, Generator, List, Optional, PathLike, Union
@@ -41,39 +42,55 @@ def abbreviate(input_path: PathLike, max_length: int = 40) -> PathLike:
 
     :param file_path: The path to abbreviate.
     :param max_length: The maximum length to the truncated path.
-    :return: The truncate path
+    :return: The truncated path
     """
-    file_path: Path = str_to_path(input_path)
-    cnt = 0
-    ref = 0
-    idx = int(len(file_path.parts) / 2)
-    mparts: List[Optional[str]] = [
-        *file_path.parts,
-    ]
-    mfile_path_s: str = os.fspath(file_path)
+    file_path: str = str(input_path)
+    first: bool = True
+    ref: int = 0
+
+    mparts: List[str] = list(
+        filter(lambda e: e not in ["", "\\", "/"], re.split("(\\\\|/)", file_path))
+    )
+    file_name = mparts[-1]
+    del mparts[-1]
+    if re.match("^[a-zA-Z]:$", mparts[0]):
+        mparts[0] += "\\"
+
+    min_abb_len = 5 if mparts[0] == "/" else 6
+    if max_length < (len(file_name) + min_abb_len):
+        return file_name
+    idx = int(len(mparts) / 2)
+    mfile_path_s = file_path
     while len(mfile_path_s) > max_length:
-        if (idx + ref) <= 1:
-            cnt += 1
-        elif (idx + ref) >= (idx * 2 + 1):
+        if (idx + ref) >= (idx * 2 + 1):
             break
-        if cnt == 0:
+        if first:
             mparts[idx + ref] = "..."
         else:
-            mparts[idx + ref] = None
+            mparts[idx + ref] = ""
 
-        filtered: List[str] = []
+        filtered = [] if file_path[0] != "/" else ["/"]
         for mpp in mparts:
             if mpp:
                 filtered.append(mpp)
+        filtered.append(file_name)
         mfile_path = Path(*tuple(filtered))
         mfile_path_s = os.fspath(mfile_path)
-        if cnt != 0:
+        if not first:
             ref *= -1
             if ref < 0:
                 ref -= 1
         else:
             ref -= 1
-        cnt += 1
+            first = False
+
+        if idx + ref >= max_length:
+            ref -= 1
+
+    if file_path.find("/") != -1:
+        mfile_path_s = mfile_path_s.replace("\\", "/")
+    elif file_path.find("\\") != -1:
+        mfile_path_s = mfile_path_s.replace("\\/", "\\").replace("/", "\\")
     return mfile_path_s
 
 

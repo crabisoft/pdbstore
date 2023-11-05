@@ -53,17 +53,17 @@ def test_incomplete(argv):
     assert cli.main(["add"] + argv) == ERROR_UNEXPECTED
 
 
-def test_complete(tmp_store_path, test_data_dir):
+def test_complete(tmp_store_dir, test_data_native_dir):
     """test complete command-line"""
 
     argv = [
         "--store-dir",
-        str(tmp_store_path),
+        str(tmp_store_dir),
         "--product-name",
         "myproduct",
         "--product-version",
         "1.0.0",
-        str(test_data_dir / "dummyapp.pdb"),
+        str(test_data_native_dir / "dummyapp.pdb"),
     ]
 
     # Test through direct command-line
@@ -71,29 +71,29 @@ def test_complete(tmp_store_path, test_data_dir):
         "sys.argv",
         ["pdbstore", "add"] + argv,
     ):
-        assert store.Store(tmp_store_path).next_transaction_id == "0000000001"
-        assert len(store.Store(tmp_store_path).history) == 0
+        assert store.Store(tmp_store_dir).next_transaction_id == "0000000001"
+        assert len(store.Store(tmp_store_dir).history) == 0
         assert cli.main() == SUCCESS
-        assert len(store.Store(tmp_store_path).history) == 1
-        assert store.Store(tmp_store_path).next_transaction_id == "0000000002"
+        assert len(store.Store(tmp_store_dir).history) == 1
+        assert store.Store(tmp_store_dir).next_transaction_id == "0000000002"
 
     # Test with direct call to main function
     assert cli.main(["add"] + argv) == SUCCESS
-    assert store.Store(tmp_store_path).next_transaction_id == "0000000003"
-    assert len(store.Store(tmp_store_path).history) == 2
+    assert store.Store(tmp_store_dir).next_transaction_id == "0000000003"
+    assert len(store.Store(tmp_store_dir).history) == 2
 
 
-def test_complete_with_invalid_file(tmp_store_path, test_data_dir):
+def test_complete_with_invalid_file(tmp_store_dir, test_data_invalid_dir):
     """test complete command-line"""
 
     argv = [
         "--store-dir",
-        str(tmp_store_path),
+        str(tmp_store_dir),
         "--product-name",
         "myproduct",
         "--product-version",
         "1.0.0",
-        str(test_data_dir / "invalid.exe"),
+        str(test_data_invalid_dir / "bad.exe"),
     ]
 
     # Test through direct command-line
@@ -107,7 +107,7 @@ def test_complete_with_invalid_file(tmp_store_path, test_data_dir):
     assert cli.main(["add"] + argv) == ERROR_ENCOUNTERED
 
 
-def test_complete_with_config(dynamic_config_file, test_data_dir):
+def test_complete_with_config(dynamic_config_file, test_data_native_dir):
     """test complete command-line with configuration file usage"""
     argv = [
         "--config-file",
@@ -118,7 +118,7 @@ def test_complete_with_config(dynamic_config_file, test_data_dir):
         "myproduct",
         "--product-version",
         "1.0.0",
-        str(test_data_dir / "dummyapp.pdb"),
+        str(test_data_native_dir / "dummyapp.pdb"),
     ]
 
     # Test through direct command-line
@@ -133,17 +133,17 @@ def test_complete_with_config(dynamic_config_file, test_data_dir):
 
 
 @mock.patch("pdbstore.io.is_compression_supported", mock.MagicMock(return_value=False))
-def test_no_compression(tmp_store_path, test_data_dir):
+def test_no_compression(tmp_store_dir, test_data_native_dir):
     """Test when comporession not supported"""
     argv = [
         "--store-dir",
-        str(tmp_store_path),
+        str(tmp_store_dir),
         "--product-name",
         "myproduct",
         "--product-version",
         "1.0.0",
         "--compress",
-        str(test_data_dir / "dummyapp.pdb"),
+        str(test_data_native_dir / "dummyapp.pdb"),
     ]
 
     # Test through direct command-line
