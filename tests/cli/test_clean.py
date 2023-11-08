@@ -38,18 +38,18 @@ def test_incomplete(argv):
     assert cli.cli.main(["clean"] + argv) == ERROR_UNEXPECTED
 
 
-def test_complete(tmp_store_path, test_data_dir):
+def test_complete(tmp_store_dir, test_data_native_dir):
     """test complete command-line"""
 
     # Fill temporary store
     argv = [
         "--store-dir",
-        str(tmp_store_path),
+        str(tmp_store_dir),
         "--product-name",
         "myproduct",
         "--product-version",
         "1.0.0",
-        str(test_data_dir / "dummyapp.pdb"),
+        str(test_data_native_dir / "dummyapp.pdb"),
     ]
     assert cli.cli.main(["add"] + argv) == SUCCESS
     assert cli.cli.main(["add"] + argv) == SUCCESS
@@ -57,12 +57,12 @@ def test_complete(tmp_store_path, test_data_dir):
 
     argv = [
         "--store-dir",
-        str(tmp_store_path),
+        str(tmp_store_dir),
         "--product-name",
         "myproduct",
         "--product-version",
         "2.0.0",
-        str(test_data_dir / "dummyapp.pdb"),
+        str(test_data_native_dir / "dummyapp.pdb"),
     ]
     assert cli.cli.main(["add"] + argv) == SUCCESS
     assert cli.cli.main(["add"] + argv) == SUCCESS
@@ -100,7 +100,7 @@ def test_complete(tmp_store_path, test_data_dir):
         )
         == SUCCESS
     )
-    trans = list(Store(tmp_store_path).transactions.transactions.values())
+    trans = list(Store(tmp_store_dir).transactions.transactions.values())
     assert len(trans) == 3
     assert trans[0].transaction_id == "0000000003"
     assert trans[0].transaction_type == TransactionType.ADD

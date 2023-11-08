@@ -205,7 +205,7 @@ class PDB:
             :PDBInvalidStreamIndexError: if invalid pdb file content
         """
         pdb_path = util.str_to_path(file_path)
-        if not pdb_path:
+        if not pdb_path or not pdb_path.is_file():
             raise FileNotExistsError(f"{file_path} : invalid file pdb path")
 
         with pdb_path.open("rb") as fppdb:

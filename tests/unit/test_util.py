@@ -46,3 +46,35 @@ def test_to_str():
     assert util.path_to_str(None) is None
     assert util.path_to_str("") is None
     assert util.path_to_str(Path(sys.executable)) == sys.executable
+
+
+@pytest.mark.parametrize(
+    "param",
+    [
+        ["/home/johndoe/documents/readme.txt", 9, "readme.txt"],
+        ["/home/johndoe/documents/readme.txt", 18, "/.../readme.txt"],
+        ["/home/johndoe/documents/readme.txt", 26, "/.../documents/readme.txt"],
+        ["/home/johndoe/documents/readme.txt", 32, "/home/.../documents/readme.txt"],
+        [
+            "/home/johndoe/documents/readme.txt",
+            40,
+            "/home/johndoe/documents/readme.txt",
+        ],
+        ["c:\\Users\\JohnDoe\\Documents\\readme.txt", 9, "readme.txt"],
+        ["c:\\Users\\JohnDoe\\Documents\\readme.txt", 18, "c:\\...\\readme.txt"],
+        ["c:\\Users\\JohnDoe\\Documents\\readme.txt", 26, "c:\\...\\readme.txt"],
+        [
+            "c:\\Users\\JohnDoe\\Documents\\readme.txt",
+            32,
+            "c:\\...\\Documents\\readme.txt",
+        ],
+        [
+            "c:\\Users\\JohnDoe\\Documents\\readme.txt",
+            40,
+            "c:\\Users\\JohnDoe\\Documents\\readme.txt",
+        ],
+    ],
+)
+def test_abbreviate(param):
+    """test abbreviate function"""
+    assert util.abbreviate(param[0], param[1]) == param[2]

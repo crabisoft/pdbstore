@@ -84,6 +84,7 @@ class PDBStoreOutput:
                 "warning": LEVEL_WARNING,  # -Vwaring 60
                 "notice": LEVEL_NOTICE,  # -Vnotice 50
                 "status": LEVEL_STATUS,  # -Vstatus 40
+                "info": LEVEL_STATUS,  # -Vstatus 40
                 None: LEVEL_VERBOSE,  # -V 30
                 "verbose": LEVEL_VERBOSE,  # -Vverbose 30
                 "debug": LEVEL_DEBUG,  # -Vdebug 20
@@ -113,6 +114,15 @@ class PDBStoreOutput:
         Determines if a level can print associated message or not.
         """
         return cls._pdbstore_output_level <= level
+
+    @classmethod
+    def output_level(cls) -> int:
+        """Retrieve the current output level.
+
+        Returns:
+            int: The current output level
+        """
+        return cls._pdbstore_output_level
 
     @property
     def color(self) -> bool:
@@ -194,7 +204,7 @@ class PDBStoreOutput:
         ret = ""
         if self._scope:
             if self._color:
-                ret = f"{fore or ''}{back or ''}{self.scope}:{Style.RESET_ALL}"
+                ret = f"{fore or ''}{back or ''}{self.scope}:{Style.RESET_ALL} "
             else:
                 ret = f"{self.scope}: "
 
@@ -235,21 +245,18 @@ class PDBStoreOutput:
             self._write_message(msg, fore=fore, back=back)
         return self
 
-    def status(
+    def info(
         self,
         msg: Union[str, Dict[str, str]],
         fore: Optional[str] = None,
         back: Optional[str] = None,
     ) -> "PDBStoreOutput":
         """
-        Prints a statis message.
+        Prints a status/informative message.
         """
         if self._pdbstore_output_level <= LEVEL_STATUS:
             self._write_message(msg, fore=fore, back=back)
         return self
-
-    # Remove in a later refactor of all the output.info calls
-    info = status
 
     def title(self, msg: Union[str, Dict[str, str]]) -> "PDBStoreOutput":
         """

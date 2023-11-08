@@ -27,14 +27,14 @@ def test_incomplete(argv):
     assert cli.cli.main(["fetch"] + argv) == ERROR_UNEXPECTED
 
 
-def test_complete(capsys, tmp_store_path, test_data_dir):
+def test_complete(capsys, tmp_store_dir, test_data_native_dir):
     """test complete command-line"""
-    pdb_path = str(test_data_dir / "dummyapp.pdb")
-    exe_path = str(test_data_dir / "dummyapp.exe")
+    pdb_path = str(test_data_native_dir / "dummyapp.pdb")
+    exe_path = str(test_data_native_dir / "dummyapp.exe")
 
     argv = [
         "--store-dir",
-        str(tmp_store_path),
+        str(tmp_store_dir),
         "--product-name",
         "myproduct",
         "--product-version",
@@ -52,14 +52,13 @@ def test_complete(capsys, tmp_store_path, test_data_dir):
         + argv[0:2]
         + [exe_path],
     ):
-        assert cli.cli.main() == ERROR_ENCOUNTERED
-        print(str(capsys.readouterr().out))
+        assert cli.cli.main() == SUCCESS
         assert (
             re.search(r"dummyapp.exe\s+Not found", capsys.readouterr().out) is not None
         )
 
     # Test with direct call to main function when file not present yet
-    assert cli.cli.main(["fetch"] + argv[0:2] + [exe_path]) == ERROR_ENCOUNTERED
+    assert cli.cli.main(["fetch"] + argv[0:2] + [exe_path]) == SUCCESS
 
     # New file into the store
     assert cli.cli.main(["add"] + argv) == SUCCESS
@@ -87,10 +86,10 @@ def test_complete(capsys, tmp_store_path, test_data_dir):
         "dummylib.dll",
     ],
 )
-def test_complete_with_config(dynamic_config_file, test_data_dir, filename):
+def test_complete_with_config(dynamic_config_file, test_data_native_dir, filename):
     """test complete command-line with configuration file usage"""
-    pdb_path = str(test_data_dir / (os.path.splitext(filename)[0] + ".pdb"))
-    exe_path = str(test_data_dir / filename)
+    pdb_path = str(test_data_native_dir / (os.path.splitext(filename)[0] + ".pdb"))
+    pe_path = str(test_data_native_dir / filename)
     argv = [
         "--config-file",
         str(dynamic_config_file),
@@ -109,9 +108,61 @@ def test_complete_with_config(dynamic_config_file, test_data_dir, filename):
     # Test through direct command-line
     with mock.patch(
         "sys.argv",
-        ["pdbstore", "fetch"] + argv[0:4] + [exe_path],
+        ["pdbstore", "fetch"] + argv[0:4] + [pe_path],
     ):
         assert cli.cli.main() == SUCCESS
 
     # Test with direct call to main function
-    assert cli.cli.main(["fetch"] + argv[0:4] + [exe_path]) == SUCCESS
+    assert cli.cli.main(["fetch"] + argv[0:4] + [pe_path]) == SUCCESS
+
+
+@pytest.mark.parametrize(
+    "formatter",
+    [
+        ["-f", "text"],
+        ["-f", "json"],
+    ],
+)
+def test_multiple_with_config(dynamic_config_file, test_data_native_dir, formatter):
+    """test multiple files with different formatters"""
+    argv = [
+        "--config-file",
+        str(dynamic_config_file),
+        "--store",
+        "release",
+        "--product-name",
+        "myproduct",
+        "--product-version",
+        "1.0.0",
+        str(test_data_native_dir / "dummyapp.pdb"),
+        str(test_data_native_dir / "dummylib.pdb"),
+    ]
+    pe_list = [
+        str(test_data_native_dir / "dummyapp.exe"),
+        str(test_data_native_dir / "dummylib.dll"),
+    ]
+    nf_path = str(test_data_native_dir / "notfound.pdb")
+    script_path = __file__
+
+    # New file into the store
+    assert cli.cli.main(["add"] + argv + ["-VVV"]) == SUCCESS
+
+    # Test through direct command-line
+    with mock.patch(
+        "sys.argv",
+        ["pdbstore", "fetch"] + formatter + argv[0:4] + pe_list,
+    ):
+        assert cli.cli.main() == SUCCESS
+
+    # Test with direct call to main function
+    assert cli.cli.main(["fetch"] + formatter + argv[0:4] + pe_list[0:1]) == SUCCESS
+    assert cli.cli.main(["fetch", "-F"] + formatter + argv[0:4] + pe_list) == SUCCESS
+
+    assert (
+        cli.cli.main(["fetch"] + formatter + argv[0:4] + pe_list + [nf_path])
+        == ERROR_ENCOUNTERED
+    )
+    assert (
+        cli.cli.main(["fetch"] + formatter + argv[0:4] + pe_list + [script_path])
+        == SUCCESS
+    )

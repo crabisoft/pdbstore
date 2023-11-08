@@ -148,7 +148,7 @@ class PortablePDB:
             :PDBInvalidStreamIndexError: if invalid pdb file content
         """
         pdb_path = util.str_to_path(file_path)
-        if not pdb_path:
+        if not pdb_path or not pdb_path.is_file():
             raise FileNotExistsError(f"{file_path} : invalid file pdb path")
 
         with pdb_path.open("rb") as fppdb:
@@ -156,7 +156,10 @@ class PortablePDB:
             if header != PDB_HEADER_SIGNATURE:
                 raise PDBSignatureNotFoundError(str(file_path))
 
-            self._root = RootStream(fppdb)
+            try:
+                self._root = RootStream(fppdb)
+            except struct.error as exs:
+                raise ParseFileError(file_path) from exs
             try:
                 # Extract GUID and age
                 self._guid = self._root.parse_guid()

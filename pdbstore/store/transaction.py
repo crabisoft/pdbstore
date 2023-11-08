@@ -130,7 +130,7 @@ class Transaction:
                 )
 
                 entries.append(transaction_entry)
-        except Exception as exc:
+        except Exception as exc:  # pragma: no cover
             raise ReadFileError(self._entries_file_path()) from exc
         return entries
 
@@ -242,7 +242,7 @@ class Transaction:
                     status,
                     TransactionType.ADD,
                 )
-            except PDBStoreException as exc:
+            except PDBStoreException as exc:  # pragma: no cover
                 summary.status = OpStatus.FAILED
                 summary.add_entry(
                     entry,
@@ -256,7 +256,7 @@ class Transaction:
             with open(self._entries_file_path(), "ab") as fpe:
                 for entry in self.entries:
                     fpe.write(f"{entry}{os.linesep}".encode("utf-8"))
-        except OSError as exo:
+        except OSError as exo:  # pragma: no cover
             raise WriteFileError(self._entries_file_path()) from exo
         return summary
 
@@ -269,7 +269,7 @@ class Transaction:
             :RenameFileError: Failed to update history file
         """
         src: Path = self._entries_file_path()
-        if not os.path.exists(src):
+        if not src.is_file():
             PDBStoreOutput().warning(
                 f"{src} : file not found, so not possible to mark it as deleted",
             )
@@ -277,7 +277,7 @@ class Transaction:
         dest: Path = Path(f"{src}.deleted")
         try:
             os.rename(src, dest)
-        except OSError as ex:
+        except OSError as ex:  # pragma: no cover
             raise RenameFileError(src, dest) from ex
 
     def __str__(self) -> str:
@@ -285,9 +285,18 @@ class Transaction:
 
         :return: The string representation
         """
-        if not self.is_committed() or not self.timestamp:
+        if not self.is_committed():
             return ""
 
+        if self.is_delete_operation():
+            if not self.deleted_id:
+                return ""
+            return (
+                f"{self.transaction_id},{self.transaction_type.value},{self.deleted_id}"
+            )
+
+        if not self.timestamp:
+            return ""
         date_stamp = self.timestamp.strftime("%m/%d/%Y")
         time_stamp = self.timestamp.strftime("%H:%M:%S")
 

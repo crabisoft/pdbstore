@@ -4,6 +4,7 @@ import shutil
 import pytest
 
 import pdbstore
+from pdbstore.store import History, OpStatus, Store
 
 HISTORE_FILE_EMPTY = ""
 HISTORY_FILE_WITH_NEWLINE = f"firstline{os.linesep}"
@@ -11,14 +12,14 @@ HISTORY_FILE_WITHOUT_NEWLINE = "firstline"
 
 
 @pytest.fixture(name="history_store")
-def fixture_history_store(tmp_path, request) -> pdbstore.store.History:
+def fixture_history_store(tmp_path, request) -> History:
     """Generate temporary history file"""
     dsp = tmp_path / "store"
     dest = dsp / pdbstore.const.ADMIN_DIRNAME / pdbstore.const.HISTORY_FILENAME
     dest.parent.mkdir(parents=True)
     with open(dest, "wb") as hfp:
         hfp.write(bytes(request.param[0], "ascii"))
-    store = pdbstore.store.History(pdbstore.store.Store(dsp))
+    store = History(Store(dsp))
     yield store
     shutil.rmtree(dsp)
 
@@ -58,3 +59,42 @@ def test_assert_newline(history_store):
     _assert_text_file_contents(
         history_store.store.history_file_path, ["firstline", "new entry"]
     )
+
+
+def test_commit_empty(tmp_store_dir):
+    """test simple commit"""
+    store = Store(tmp_store_dir)
+    new_transaction = store.new_transaction(
+        "my product",
+        "1.0",
+        "",
+    )
+
+    assert store.commit(new_transaction, False).status == OpStatus.SKIPPED
+
+
+def test_commit_simple(tmp_store_dir, test_data_native_dir):
+    """test simple commit"""
+    store = Store(tmp_store_dir)
+    new_transaction = store.new_transaction(
+        "my product",
+        "1.0",
+        "",
+    )
+
+    new_transaction.register_entry(test_data_native_dir / "dummyapp.pdb", False)
+    assert store.commit(new_transaction, False).status == OpStatus.SUCCESS
+
+
+def test_commit_multiple(tmp_store_dir, test_data_native_dir):
+    """test same commit multiple times"""
+    store = Store(tmp_store_dir)
+    new_transaction = store.new_transaction(
+        "my product",
+        "1.0",
+        "",
+    )
+
+    new_transaction.register_entry(test_data_native_dir / "dummyapp.pdb", False)
+    assert store.commit(new_transaction, False).status == OpStatus.SUCCESS
+    assert store.commit(new_transaction, False).status == OpStatus.SKIPPED

@@ -29,17 +29,17 @@ def test_incomplete(argv):
     assert cli.cli.main(["del"] + argv) == ERROR_UNEXPECTED
 
 
-def test_complete(capsys, tmp_store_path, test_data_dir):
+def test_complete(capsys, tmp_store_dir, test_data_native_dir):
     """test complete command-line"""
 
     argv = [
         "--store-dir",
-        str(tmp_store_path),
+        str(tmp_store_dir),
         "--product-name",
         "myproduct",
         "--product-version",
         "1.0.0",
-        str(test_data_dir / "dummyapp.pdb"),
+        str(test_data_native_dir / "dummyapp.pdb"),
     ]
 
     # Test through direct command-line when file not present yet
@@ -66,9 +66,9 @@ def test_complete(capsys, tmp_store_path, test_data_dir):
 
     # New file into the store and twice to have 2 records
     assert cli.cli.main(["add"] + argv) == 0
-    assert len(store.Store(tmp_store_path).history) == ERROR_GENERAL
+    assert len(store.Store(tmp_store_dir).history) == ERROR_GENERAL
     assert cli.cli.main(["add"] + argv) == 0
-    assert len(store.Store(tmp_store_path).history) == 2
+    assert len(store.Store(tmp_store_dir).history) == 2
 
     # Test through direct command-line
     with mock.patch(
@@ -76,14 +76,14 @@ def test_complete(capsys, tmp_store_path, test_data_dir):
         ["pdbstore", "del", "1"] + argv[0:2],
     ):
         assert cli.cli.main() == SUCCESS
-        assert len(store.Store(tmp_store_path).history) == 3
+        assert len(store.Store(tmp_store_dir).history) == 3
 
     # Test with direct call to main function
     assert cli.cli.main(["del", "2"] + argv[0:2]) == SUCCESS
-    assert len(store.Store(tmp_store_path).history) == 4
+    assert len(store.Store(tmp_store_dir).history) == 4
 
 
-def test_complete_with_config(dynamic_config_file, test_data_dir):
+def test_complete_with_config(dynamic_config_file, test_data_native_dir):
     """test complete command-line with configuration file usage"""
     argv = [
         "--config-file",
@@ -94,7 +94,7 @@ def test_complete_with_config(dynamic_config_file, test_data_dir):
         "myproduct",
         "--product-version",
         "1.0.0",
-        str(test_data_dir / "dummyapp.pdb"),
+        str(test_data_native_dir / "dummyapp.pdb"),
     ]
 
     # New file into the store and twice to have 2 records
