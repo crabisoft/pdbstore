@@ -83,15 +83,15 @@ def test_reprensetation(tmp_store):
         "0000000001",
         TransactionType.ADD.value,
         "file",
-        datetime.fromtimestamp(1699195604),
+        datetime.utcfromtimestamp(1699195604),
     )
     assert (
         str(transaction)
-        == '0000000001,add,file,11/05/2023,15:46:44,"None","None","None",'
+        == '0000000001,add,file,11/05/2023,14:46:44,"None","None","None",'
     )
     assert (
         repr(transaction)
-        == '0000000001,add,file,11/05/2023,15:46:44,"None","None","None",'
+        == '0000000001,add,file,11/05/2023,14:46:44,"None","None","None",'
     )
 
     transaction = Transaction(
