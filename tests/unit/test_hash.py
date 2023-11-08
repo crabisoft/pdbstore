@@ -1,4 +1,5 @@
 import io
+import pathlib
 from unittest import mock
 
 import pytest
@@ -49,8 +50,7 @@ def test_hash_not_found(test_data_dir):
         "test_data_portable_dir",
     ],
 )
-@mock.patch("io.open")
-def test_incomplete(_open, dir_name, request):
+def test_incomplete(dir_name, request):
     """test incomplete portable PDB file content"""
     base_dir = request.getfixturevalue(dir_name)
     pdb_path = base_dir / "dummylib.pdb"
@@ -58,15 +58,16 @@ def test_incomplete(_open, dir_name, request):
         fds = io.BytesIO(fps.read(2))
         fps.seek(0)
         fds.close = mock.Mock(return_value=None, side_effect=lambda: fds.seek(0))
-        _open.return_value = fds
 
-        with pytest.raises(exceptions.UnknowFileTypeError):
-            file.compute_hash_key(pdb_path)
+        with mock.patch.object(pathlib.Path, "open") as mocked:
+            mocked.return_value = fds
+            with pytest.raises(exceptions.UnknowFileTypeError):
+                file.compute_hash_key(pdb_path)
 
         fds = io.BytesIO(fps.read(60))
         fps.seek(0)
         fds.close = mock.Mock(return_value=None, side_effect=lambda: fds.seek(0))
-        _open.return_value = fds
-
-        with pytest.raises(exceptions.UnknowFileTypeError):
-            file.compute_hash_key(pdb_path)
+        with mock.patch.object(pathlib.Path, "open") as mocked:
+            mocked.return_value = fds
+            with pytest.raises(exceptions.UnknowFileTypeError):
+                file.compute_hash_key(pdb_path)

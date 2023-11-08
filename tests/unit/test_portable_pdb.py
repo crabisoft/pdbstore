@@ -1,4 +1,5 @@
 import io
+import pathlib
 from unittest import mock
 
 import pytest
@@ -20,26 +21,27 @@ def test_native(test_data_portable_dir, file_info):
     assert f"{pdb.age or ''}".upper() == file_info[2]
 
 
-@mock.patch("io.open")
-def test_incomplete(_open, test_data_portable_dir):
+def test_incomplete(test_data_portable_dir):
     """test incomplete portable PDB file content"""
     pdb_path = test_data_portable_dir / "dummylib.pdb"
     with open(pdb_path, "rb") as fps:
         fds = io.BytesIO(fps.read(2))
         fps.seek(0)
         fds.close = mock.Mock(return_value=None, side_effect=lambda: fds.seek(0))
-        _open.return_value = fds
 
-        with pytest.raises(exceptions.PDBSignatureNotFoundError):
-            portablepdbfile.PortablePDB(pdb_path)
+        with mock.patch.object(pathlib.Path, "open") as mocked:
+            mocked.return_value = fds
+            with pytest.raises(exceptions.PDBSignatureNotFoundError):
+                portablepdbfile.PortablePDB(pdb_path)
 
         fds = io.BytesIO(fps.read(60))
         fps.seek(0)
         fds.close = mock.Mock(return_value=None, side_effect=lambda: fds.seek(0))
-        _open.return_value = fds
 
-        with pytest.raises(exceptions.ParseFileError):
-            portablepdbfile.PortablePDB(pdb_path)
+        with mock.patch.object(pathlib.Path, "open") as mocked:
+            mocked.return_value = fds
+            with pytest.raises(exceptions.ParseFileError):
+                portablepdbfile.PortablePDB(pdb_path)
 
 
 def test_pdb_not_found(test_data_dir):
