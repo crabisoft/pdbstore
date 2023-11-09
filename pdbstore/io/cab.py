@@ -53,6 +53,7 @@ def _decompress_expand(src_path: PathLike, dest_dir: PathLike) -> None:
     """
     args = [
         "expand.exe",
+        "-R",
         os.fspath(src_path),
         os.fspath(dest_dir),
     ]
