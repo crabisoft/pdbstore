@@ -76,7 +76,7 @@ def test_deleted(tmp_store, monkeypatch, capsys):
             ren_mock.assert_called()
 
 
-def test_reprensetation(tmp_store):
+def test_representation(tmp_store):
     """test transaction representation"""
     transaction = Transaction(
         tmp_store,

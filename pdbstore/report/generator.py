@@ -39,7 +39,7 @@ class ReportGenerator:
 
         data = self.mapping[report_type]()
         if not data.build(self.store):
-            return None
+            return None  # pragma: no cover
         return data
 
     def supported_list(self) -> List[str]:

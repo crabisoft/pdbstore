@@ -18,7 +18,7 @@ class TransactionEntry:
         file_name: str,
         file_hash: str,
         source_file: PathLike,
-        compressed: Optional[bool] = False,
+        compressed: bool = False,
     ):
         # The associated symbol store object
         self.store: "Store" = store  # type: ignore[name-defined] # noqa: F821
@@ -29,7 +29,7 @@ class TransactionEntry:
         # Full path name to the input source file to be stored
         self.source_file: Path = util.str_to_path(source_file)
         # Flag indicating if the stored file is compressed or not
-        self.compressed: Optional[bool] = compressed
+        self.compressed: bool = compressed
 
     def _stored_dir(self) -> Path:
         """Retrieve the full path of the associated directory from associated store.
@@ -64,6 +64,13 @@ class TransactionEntry:
         """
         file_path = self.stored_path
         return file_path.is_file()
+
+    def is_compressed(self) -> bool:
+        """Determine if compression activated or not
+
+        :return: True if compression is enabled, else False
+        """
+        return self.compressed
 
     def commit(self, force: Optional[bool] = False) -> bool:
         """Commit transaction entry by storing the required filse into the symbol store
