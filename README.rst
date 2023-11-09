@@ -1,26 +1,7 @@
 pdbstore
 =============
 
-.. image:: https://github.com/crabisoft/pdbstore/workflows/Test/badge.svg
-   :target: https://github.com/crabisoft/pdbstore/actions
-
-.. image:: https://badge.fury.io/py/pdbstore.svg
-   :target: https://badge.fury.io/py/pdbstore
-
-.. image:: https://readthedocs.org/projects/pdbstore/badge/?version=latest
-   :target: https://pdbstore.readthedocs.org/en/latest/?badge=latest
-
-.. image:: https://codecov.io/github/crabisoft/pdbstore/coverage.svg?branch=main
-    :target: https://codecov.io/github/crabisoft/pdbstore?branch=main
-
-.. image:: https://img.shields.io/pypi/pyversions/pdbstore.svg
-   :target: https://pypi.python.org/pypi/pdbstore
-
-.. image:: https://img.shields.io/badge/code%20style-black-000000.svg
-    :target: https://github.com/python/black
-
-.. image:: https://img.shields.io/github/license/crabisoft/pdbstore
-   :target: https://github.com/crabisoft/pdbstore/blob/main/COPYING
+|Test| |PyPI| |Read the Docs| |Coverage| |Python| |Code Style| |Pre-Commit| |License|
 
 ``pdbstore`` is a Python package providing command-line utility to manage PDB symbol store.
 
@@ -71,3 +52,35 @@ Contributing
 
 For guidelines for contributing to ``pdbstore``, refer to `CONTRIBUTING.rst <https://github.com/crabisoft/pdbstore/blob/main/CONTRIBUTING.rst>`_.
 
+
+.. |Test| image:: https://github.com/crabisoft/pdbstore/workflows/Test/badge.svg
+   :target: https://github.com/crabisoft/pdbstore/actions
+   :alt: Test
+
+.. |PyPI| image:: https://img.shields.io/pypi/v/pdbstore?label=PyPI&logo=pypi
+   :target: https://badge.fury.io/py/pdbstore
+   :alt: PyPI
+
+.. |Read the Docs| image:: https://img.shields.io/readthedocs/pdbstore?label=Read%20the%20Docs&logo=Read%20the%20Docs
+   :target: https://pdbstore.readthedocs.org/en/latest
+   :alt: Docs
+
+.. |Coverage| image:: https://img.shields.io/codecov/c/github/crabisoft/pdbstore?logo=Codecov&label=Coverage
+   :target: https://codecov.io/github/crabisoft/pdbstore?branch=main
+   :alt: Cover
+
+.. |Python| image:: https://img.shields.io/pypi/pyversions/pdbstore.svg?label=Python&logo=Python
+   :target: https://pypi.python.org/pypi/pdbstore
+   :alt: Python
+
+.. |Code Style| image:: https://img.shields.io/badge/code%20style-black-000000.svg?label=Code%20Style
+   :target: https://github.com/python/black
+   :alt: Code Style
+
+.. |Pre-Commit| image:: https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&label=Pre-Commit
+   :target: https://github.com/pre-commit/pre-commit
+   :alt: Pre-Commit
+
+.. |License| image:: https://img.shields.io/github/license/crabisoft/pdbstore?label=License
+   :target: https://github.com/crabisoft/pdbstore/blob/main/COPYING
+   :alt: License
