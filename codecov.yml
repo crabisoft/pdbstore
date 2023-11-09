@@ -1,6 +1,6 @@
 codecov:
   notify:
-    after_n_builds: 3
+    after_n_builds: 2
   require_ci_to_pass: yes
 
 coverage:
@@ -9,10 +9,10 @@ coverage:
   range: "70...100"
 
 comment:
-  after_n_builds: 3
+  after_n_builds: 1
   layout: "diff,flags,files"
   behavior: default
-  require_changes: yes
+  require_changes: false
 
 github_checks:
   annotations: true
