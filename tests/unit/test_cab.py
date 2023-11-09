@@ -236,6 +236,7 @@ def test_decompress_not_supported_per_platform(_which, platform):
             pdbstore.io.cab._decompress_expand,
             [
                 "expand.exe",
+                "-R",
                 "/usr/input/file.pd_",
                 "/usr/output",
             ],
@@ -280,6 +281,7 @@ def test_decompress_invocation_success(_which, fake_process, test_args):
             pdbstore.io.cab._decompress_expand,
             [
                 "expand.exe",
+                "-R",
                 "/usr/input/file.pd_",
                 "/usr/output",
             ],
