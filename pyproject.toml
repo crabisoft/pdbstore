@@ -28,7 +28,7 @@ keywords=["development", "symstore", "pdb", "pdbstore"]
 dependencies = ["colorama", "pefile", "Jinja2"]
 
 [project.scripts]
-pdbstore = "pdbstore.__main__:main"
+pdbstore = "pdbstore.cli.cli:main"
 
 [project.urls]
 changelog = "https://github.com/crabisoft/pdbstore/blob/main/CHANGELOG.md"
