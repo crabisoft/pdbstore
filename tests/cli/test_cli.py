@@ -1,3 +1,5 @@
+import subprocess
+import sys
 from pathlib import Path
 from unittest import mock
 
@@ -7,6 +9,7 @@ from pdbstore.cli.exit_codes import (
     ERROR_COMMAND_NAME,
     ERROR_ENCOUNTERED,
     ERROR_INVALID_CONFIGURATION,
+    ERROR_SUBCOMMAND_NAME,
     SUCCESS,
 )
 from pdbstore.io.output import PDBStoreOutput
@@ -20,8 +23,7 @@ def test_version(capsys):
         assert pdbstore.cli.cli.main() == SUCCESS
         assert capsys.readouterr().out == f"{pdbstore.__version__}\n"
     assert pdbstore.cli.cli.main(["--version"]) == 0
-    captured = capsys.readouterr()
-    assert captured.out == f"{pdbstore.__version__}\n"
+    assert capsys.readouterr().out == f"{pdbstore.__version__}\n"
 
 
 def test_config_error(capsys):
@@ -108,3 +110,32 @@ The most similar command is
 
 """
     )
+
+
+def test_no_subcommand_name(capsys):
+    """test command without subcommand name"""
+    assert pdbstore.cli.cli.main(["report"]) == ERROR_SUBCOMMAND_NAME
+    out, err = capsys.readouterr()
+    assert out.startswith("usage: pdbstore report {file,product,transaction")
+    assert err == ""
+
+
+def test_unsupported_subcommand_name(capsys):
+    """test command with unsupported subcommand name"""
+    assert pdbstore.cli.cli.main(["report", "invalid"]) == ERROR_SUBCOMMAND_NAME
+    out, err = capsys.readouterr()
+    assert out.startswith("usage: pdbstore report {file,product,transaction")
+    assert err == ""
+
+
+def test_commandline_as_module():
+    """test command-line invoked as python module"""
+
+    command = [sys.executable, "-m", "pdbstore", "--version"]
+    with subprocess.Popen(
+        command, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    ) as proc:
+        stdout, stderr = proc.communicate()
+        assert proc.returncode == 0
+        assert stdout.decode().startswith(pdbstore.__version__)
+        assert stderr.decode() == ""

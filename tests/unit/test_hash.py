@@ -31,6 +31,18 @@ def test_hash_pdb_native(test_data_native_dir, file_info):
     assert hash_key == file_info[1]
 
 
+@pytest.mark.parametrize(
+    "file_info",
+    [
+        ("dummylib.pdb", "26AAE66BC7ED4655BD38492E7BB268831"),
+    ],
+)
+def test_hash_pdb_portable(test_data_portable_dir, file_info):
+    """Test PDB file hash"""
+    hash_key = file.compute_hash_key(test_data_portable_dir / file_info[0])
+    assert hash_key == file_info[1]
+
+
 def test_hash_invalid(test_data_invalid_dir):
     """Test invalid exe file"""
     with pytest.raises(exceptions.UnknowFileTypeError):
@@ -51,7 +63,7 @@ def test_hash_not_found(test_data_dir):
     ],
 )
 def test_incomplete(dir_name, request):
-    """test incomplete portable PDB file content"""
+    """test incomplete PDB file content"""
     base_dir = request.getfixturevalue(dir_name)
     pdb_path = base_dir / "dummylib.pdb"
     with open(pdb_path, "rb") as fps:

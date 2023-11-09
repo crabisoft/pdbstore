@@ -70,7 +70,7 @@ class Store:
                     last_id = int(content)
                 except exceptions.ReadFileError:
                     raise
-                except Exception as exc:
+                except Exception as exc:  # pragma: no cover
                     raise exceptions.UnexpectedError(
                         "Failed to extract last id from lastid file"
                     ) from exc
