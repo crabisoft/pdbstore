@@ -18,8 +18,8 @@ pdbfile module
     :undoc-members:
     :show-inheritance:
 
-Module contents
----------------
+io module
+---------
 
 .. automodule:: pdbstore.io
     :members:
