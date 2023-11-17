@@ -303,13 +303,9 @@ class PDBStoreOutput:
         Prints an error message.
         """
         if self._pdbstore_output_level <= LEVEL_ERROR:
-            if isinstance(msg, BaseException):
-                sio = io.StringIO()
-                traceback.print_exception(
-                    type(msg), value=msg, tb=msg.__traceback__, file=sio
-                )
-                exc_msg: str = sio.getvalue()
-                sio.close()
+            if isinstance(msg, BaseException): # pragma: no cover
+                lines = traceback.format_exception(msg)
+                exc_msg = ("\n".join(lines)).replace("\n", "\n       ")
                 self._write_message(f"ERROR: {exc_msg}", Color.RED)
             else:
                 self._write_message(f"ERROR: {msg}", Color.RED)
