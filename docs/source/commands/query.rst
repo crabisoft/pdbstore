@@ -6,6 +6,9 @@ pdbstore query
 .. code-block:: text
 
     $ pdbstore query -h
+    usage: pdbstore fetch [-s DIRECTORY] [-r] [-F] [-C PATH] [-S NAME] [-L PATH]
+                          [-V [LEVEL]] [-f NAME] [-h] [FILE_OR_DIR ...]
+
     Check if file(s) are indexed on the server
 
     positional arguments:
