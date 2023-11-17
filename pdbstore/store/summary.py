@@ -97,7 +97,7 @@ class Summary:
     def referenced(self, full: bool = False) -> int:
         """Retrieve the total of modified references."""
         return self._references + (
-            self._linked.skipped() if (full and self._linked) else 0
+            self._linked.referenced() if (full and self._linked) else 0
         )
 
     def count(self, success_only: bool = False) -> int:

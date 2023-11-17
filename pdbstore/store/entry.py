@@ -48,6 +48,16 @@ class TransactionEntry:
         return self.source_file
 
     @property
+    def rel_path(self) -> Path:
+        """Retrieve the relative path to the stored file
+
+        :return: Relative path name to the stored file
+        """
+        if not self.compressed:
+            return Path(self.file_name, self.file_hash, self.file_name)
+        return Path(self.file_name, self.file_hash, (str(self.file_name)[:-1] + "_"))
+
+    @property
     def stored_path(self) -> Path:
         """Retrieve the full path to the stored file
 

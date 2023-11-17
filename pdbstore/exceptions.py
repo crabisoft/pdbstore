@@ -9,6 +9,7 @@ class PDBStoreException(Exception):
 
     def __init__(self, message: str) -> None:
         Exception.__init__(self, message)
+        self.message = message
 
 
 #

@@ -67,7 +67,7 @@ class PDBStoreArgumentParser(argparse.ArgumentParser):
         except ConfigError as exc:
             if "--help" in (args or sys.argv) or "-h" in (args or sys.argv):
                 self.print_help()
-                raise PDBAbortExecution(0)  # pylint: disable=raise-missing-from
+                raise PDBAbortExecution(0) from exc
             raise exc
 
         args_dict = vars(options)

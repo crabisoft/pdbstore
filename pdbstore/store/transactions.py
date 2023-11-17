@@ -79,7 +79,7 @@ class Transactions:
             ReadFileError: Failed to read server file
         """
         if not self._server_file_exists():
-            PDBStoreOutput().warning(f"{str(self.store.server_file_path)} not found")
+            PDBStoreOutput().verbose(f"{str(self.store.server_file_path)} not found")
             return {}
 
         transactions = {}
