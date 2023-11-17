@@ -6,6 +6,9 @@ pdbstore fetch
 .. code-block:: text
 
     $ pdbstore fetch -h
+    usage: pdbstore fetch [-s DIRECTORY] [-r] [-O DIR] [-F] [-C PATH] [-S NAME] 
+                          [-L PATH] [-V [LEVEL]] [-f NAME] [-h] [FILE_OR_DIR ...]
+
     Fetch all files from a symbol store
 
     positional arguments:

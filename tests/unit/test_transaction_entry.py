@@ -1,6 +1,7 @@
 import importlib
 import os
 from unittest import mock
+from pathlib import Path
 
 import pytest
 
@@ -26,6 +27,12 @@ def test_valid(tmp_store, test_data_native_dir):
         / "1972BE39B97341928816018A8ECD08D91"
         / "dummylib.pdb"
     )
+    assert (
+        entry.rel_path
+        == Path("dummylib.pdb")
+        / "1972BE39B97341928816018A8ECD08D91"
+        / "dummylib.pdb"
+    )
     assert entry.is_committed() is False
     assert entry.is_compressed() is False
 
@@ -41,6 +48,12 @@ def test_valid(tmp_store, test_data_native_dir):
         entry.stored_path
         == tmp_store.rootdir
         / "dummylib.pdb"
+        / "1972BE39B97341928816018A8ECD08D91"
+        / "dummylib.pd_"
+    )
+    assert (
+        entry.rel_path
+        == Path("dummylib.pdb")
         / "1972BE39B97341928816018A8ECD08D91"
         / "dummylib.pd_"
     )

@@ -17,3 +17,5 @@ class TransactionType(Enum):
     """ Query files from symbol store"""
     FETCH = "fetch"
     """ Search and extract files from symbol store"""
+    UNUSED = "unused"
+    """ Find all files not used since a specific date from symbol store"""

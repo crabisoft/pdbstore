@@ -178,7 +178,7 @@ class Cli:
             command.run(args[0][1:])
         except Exception as exc:
             if PDBStoreOutput.level_allowed(LEVEL_TRACE):
-                print(traceback.format_exc(), file=sys.stderr)
+                output.trace("\n".join(traceback.format_exception(exc)))
             raise exc
         return 0
 
@@ -195,13 +195,13 @@ class Cli:
         if isinstance(exception, PDBInvalidSubCommandNameException):
             return ERROR_SUBCOMMAND_NAME
         if isinstance(exception, CommandLineError):
-            output.error(str(exception))
+            output.error(exception.message)
             return ERROR_UNEXPECTED
         if isinstance(exception, ConfigError):
-            output.error(exception)
+            output.error(exception.message)
             return ERROR_INVALID_CONFIGURATION
         if isinstance(exception, PDBStoreException):
-            output.error(exception)
+            output.error(exception.message)
             return ERROR_GENERAL
         if isinstance(exception, SystemExit):
             if exception.code != 0:

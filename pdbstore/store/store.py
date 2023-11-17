@@ -11,7 +11,7 @@ from pdbstore.store.summary import OpStatus, Summary
 from pdbstore.store.transaction import Transaction
 from pdbstore.store.transaction_type import TransactionType
 from pdbstore.store.transactions import Transactions
-from pdbstore.typing import List, Optional, PathLike, Tuple
+from pdbstore.typing import Callable, Generator, List, Optional, PathLike, Tuple
 
 __all__ = ["Store"]
 
@@ -341,3 +341,15 @@ class Store:
             next_summary = trans_summary
 
         return summary or Summary()
+
+    def iterator(
+        self, filter_cb: Optional[Callable[[Transaction], bool]] = None
+    ) -> Generator[Tuple[Transaction, TransactionEntry], None, None]:
+        """Iterate over all transactions and file entries.
+
+        :param product: Optional callback function to filter transactions.
+        """
+        for transaction in self.transactions.transactions.values():
+            if not filter_cb or filter_cb(transaction):
+                for entry in transaction.entries:
+                    yield (transaction, entry)

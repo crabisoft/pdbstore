@@ -48,7 +48,7 @@ def report_html_formatter(report_dict: ReportDict) -> None:
     _report_render(report_dict, "html")
 
 
-@pdbstore_command(group="Usage")
+@pdbstore_command(group="Analysis")
 def report(
     parser: PDBStoreArgumentParser,  # pylint: disable=unused-argument
     *args: Any,  # pylint: disable=unused-argument
