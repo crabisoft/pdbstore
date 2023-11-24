@@ -176,7 +176,7 @@ def extract_dbg_info(file_path: PathLike) -> Optional[Tuple[str, str]]:
                 pdb_filename = ntpath.basename(
                     code_view_entry.entry.PdbFileName.decode("utf-8")
                 )
-            if hasattr(code_view_entry.entry, 'Signature_Data5'): # pragma: no cover
+            if hasattr(code_view_entry.entry, 'Signature_Data5'):
                 # recent pefile version
                 fields=(
                     code_view_entry.entry.Signature_Data1,
@@ -187,6 +187,7 @@ def extract_dbg_info(file_path: PathLike) -> Optional[Tuple[str, str]]:
                     code_view_entry.entry.Signature_Data6_value,
                 )
             else:
+                # pragma: no cover
                 # old pefile version
                 Signature_Data4 = code_view_entry.entry.Signature_Data4[0]
                 Signature_Data5 = code_view_entry.entry.Signature_Data4[1]
