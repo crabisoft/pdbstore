@@ -61,6 +61,10 @@ For guidelines for contributing to ``pdbstore``, refer to `CONTRIBUTING.rst <htt
    :target: https://badge.fury.io/py/pdbstore
    :alt: PyPI
 
+.. |Conda| image:: https://img.shields.io/conda/v/conda-forge/pdbstore?label=Conda
+   :target: https://anaconda.org/conda-forge/pdbstore
+   :alt: Conda
+
 .. |Read the Docs| image:: https://img.shields.io/readthedocs/pdbstore?label=Read%20the%20Docs&logo=Read%20the%20Docs
    :target: https://pdbstore.readthedocs.org/en/latest
    :alt: Docs

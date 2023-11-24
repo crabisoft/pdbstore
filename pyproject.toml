@@ -33,7 +33,7 @@ pdbstore = "pdbstore.cli.cli:main"
 [project.urls]
 changelog = "https://github.com/crabisoft/pdbstore/blob/main/CHANGELOG.md"
 documentation = "https://pdbstore.readthedocs.io"
-homepage = "https://pdbstore.readthedocs.io"
+homepage = "https://github.com/crabisoft/pdbstore"
 issues = "https://github.com/crabisoft/pdbstore/issues"
 repository = "http://github.com/crabisoft/pdbstore.git"
 

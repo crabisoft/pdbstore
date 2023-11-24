@@ -64,6 +64,14 @@ jobs:
         skip-existing: true
         verbose: true
 
+    - name: Build and publish to Conda-forge
+      uses: crabisoft/publish-conda@v1.0.0
+      if: steps.release.outputs.released == 'true'
+      with:
+        sub-directory: 'conda'
+        platforms: 'noarch'
+        token: ${{ secrets.ANACONDA_TOKEN  }}
+
 
   windows-build:
       needs: [release]

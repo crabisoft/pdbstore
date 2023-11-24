@@ -1,0 +1,51 @@
+{% set pyproject = load_file_data('pyproject.toml') %}
+
+package:
+    name: pdbstore
+    version: {{ pyproject['project']['version'] }}
+
+source:
+    path: ..
+
+build:
+    noarch: python
+    number: 0
+    script: python setup.py install
+
+requirements:
+    build:
+        {% for req in pyproject['project']['dependencies'] %}
+            - {{ req }}
+        {% endfor %}
+    run:
+        {% for req in pyproject['project']['dependencies'] %}
+            - {{ req }}
+        {% endfor %}
+
+test:
+    source_files:
+        - pdbstore/
+        - tests/
+        - setup.py
+    imports:
+        - pdbstore
+    commands:
+        - pytest ./tests/unit
+        - pytest ./tests/cli
+    requires:
+        - mock
+        - coverage
+        - pytest==7.1.2
+        - pytest-cov
+        - pytest-subprocess
+        - wheel==0.41.2
+        - setuptools>=61.0.0
+
+about:
+  home: {{ pyproject['project']['urls']['homepage'] }}
+  license: MIT
+  license_file: COPYING
+  summary: {{ pyproject['project']['description'] }}
+  dev_url: {{pyproject['project']['urls']['homepage'] }}
+  doc_url: {{ pyproject['project']['urls']['documentation'] }}
+  doc_source_url: {{ pyproject['project']['urls']['homepage'] + '/README.rst' }}
