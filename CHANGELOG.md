@@ -1,5 +1,21 @@
 # CHANGELOG
 
+## v0.1.0 (2023-11-24)
+
+### Documentation
+
+* docs: update readme file ([`a43c26d`](https://github.com/crabisoft/pdbstore/commit/a43c26dbb1c9dc796caa977cf5de042f2bdf48f2))
+
+### Feature
+
+* feat: add conda-forge deployment (#9) ([`0357d62`](https://github.com/crabisoft/pdbstore/commit/0357d62be13fb64dbe2acd3564663a10479625be))
+
+* feat: add unused command (#8) ([`23c2450`](https://github.com/crabisoft/pdbstore/commit/23c24500ff5a176eff720dd3ebde7fbd3951773e))
+
+### Fix
+
+* fix: wrong scripts definition from project file (#7) ([`55d9096`](https://github.com/crabisoft/pdbstore/commit/55d9096082acfc36376aff4dd3a8e5852767dc94))
+
 ## v0.0.2 (2023-11-09)
 
 ### Chore
