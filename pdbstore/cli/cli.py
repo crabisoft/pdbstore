@@ -178,7 +178,7 @@ class Cli:
             command.run(args[0][1:])
         except Exception as exc:
             if PDBStoreOutput.level_allowed(LEVEL_TRACE):
-                output.trace("\n".join(traceback.format_exception(exc)))
+                output.trace("\n".join(traceback.format_exception(*sys.exc_info())))
             raise exc
         return 0
 
