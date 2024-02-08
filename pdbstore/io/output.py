@@ -1,4 +1,3 @@
-import io
 import os
 import sys
 import traceback
@@ -303,8 +302,10 @@ class PDBStoreOutput:
         Prints an error message.
         """
         if self._pdbstore_output_level <= LEVEL_ERROR:
-            if isinstance(msg, BaseException): # pragma: no cover
-                lines = traceback.format_exception(msg)
+            if isinstance(msg, BaseException):  # pragma: no cover
+                lines = traceback.format_exception(
+                    type(msg), value=msg, tb=msg.__traceback__
+                )
                 exc_msg = ("\n".join(lines)).replace("\n", "\n       ")
                 self._write_message(f"ERROR: {exc_msg}", Color.RED)
             else:
