@@ -1,6 +1,6 @@
-import struct
 import ntpath
 import os
+import struct
 import uuid
 from pathlib import Path
 
@@ -176,9 +176,9 @@ def extract_dbg_info(file_path: PathLike) -> Optional[Tuple[str, str]]:
                 pdb_filename = ntpath.basename(
                     code_view_entry.entry.PdbFileName.decode("utf-8")
                 )
-            if hasattr(code_view_entry.entry, 'Signature_Data5'):
+            if hasattr(code_view_entry.entry, "Signature_Data5"):
                 # recent pefile version
-                fields=(
+                fields = (
                     code_view_entry.entry.Signature_Data1,
                     code_view_entry.entry.Signature_Data2,
                     code_view_entry.entry.Signature_Data3,
@@ -189,13 +189,21 @@ def extract_dbg_info(file_path: PathLike) -> Optional[Tuple[str, str]]:
             else:
                 # pragma: no cover
                 # old pefile version
-                Signature_Data4 = code_view_entry.entry.Signature_Data4[0]
-                Signature_Data5 = code_view_entry.entry.Signature_Data4[1]
-                Signature_Data6 = struct.unpack(
-                    ">Q", b"\0\0" + code_view_entry.entry.Signature_Data4[2:]
+                Signature_Data4 = code_view_entry.entry.Signature_Data4[  # pylint: disable=invalid-name
+                    0
+                ]
+                Signature_Data5 = code_view_entry.entry.Signature_Data4[  # pylint: disable=invalid-name
+                    1
+                ]
+                Signature_Data6 = struct.unpack(  # pylint: disable=invalid-name
+                    ">Q",
+                    b"\0\0"
+                    + code_view_entry.entry.Signature_Data4[  # pylint: disable=invalid-name
+                        2:
+                    ],
                 )[0]
 
-                fields=(
+                fields = (
                     code_view_entry.entry.Signature_Data1,
                     code_view_entry.entry.Signature_Data2,
                     code_view_entry.entry.Signature_Data3,
@@ -203,9 +211,8 @@ def extract_dbg_info(file_path: PathLike) -> Optional[Tuple[str, str]]:
                     Signature_Data5,
                     Signature_Data6,
                 )
-            guid = (str(uuid.UUID(fields=fields))
-                .replace("-", "")
-                .upper()
+            guid = (
+                str(uuid.UUID(fields=fields)).replace("-", "").upper()
                 + f"{code_view_entry.entry.Age:X}"
             )
         else:
