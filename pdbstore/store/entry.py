@@ -103,6 +103,16 @@ class TransactionEntry:
             dest_dir.mkdir(parents=True)
 
         if self.compressed:
+            # Sanity check to limit compression for file having size with less than 2GB
+            # 2GB is the limit of cab files as Microsoft documentation
+            max_cab_file_size = 2147483648
+            if max_cab_file_size < self.source_file.stat().st_size:
+                self.compressed = False
+                PDBStoreOutput().warning(
+                    f"Disable compression for {self.source_file} since file size is more than 2GB"
+                )
+
+        if self.compressed:
             PDBStoreOutput().debug(
                 f"Compressing {self.source_file} to {str(dest_dir / (self.file_name[:-1] + '_'))}"
             )
