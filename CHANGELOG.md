@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v0.1.1 (2024-02-28)
+
+### Fix
+
+* fix: bad exception management (#10) ([`f5cf7b9`](https://github.com/crabisoft/pdbstore/commit/f5cf7b9efe2ebd99d285c5b1f7f7962469c94f50))
+
 ## v0.1.0 (2023-11-24)
 
 ### Documentation
