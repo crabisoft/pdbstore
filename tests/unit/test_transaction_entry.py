@@ -185,3 +185,19 @@ def test_extract_failure(tmp_path, tmp_store, test_data_native_dir, fake_process
         entry.compressed = False
         with pytest.raises(exceptions.CopyFileError):
             entry.extract(tmp_path)
+
+
+def test_large_compressed_file(tmp_store, test_data_native_dir):
+    """test no compress for very large file"""
+    with mock.patch("pdbstore.io.file.get_file_size") as _get_file_size:
+        _get_file_size.return_value = TransactionEntry.MAX_COMPRESSED_FILE_SIZE + 10
+        entry = TransactionEntry(
+            tmp_store,
+            "dummylib.pdb",
+            "1972BE39B97341928816018A8ECD08D91",
+            test_data_native_dir / "dummylib.pdb",
+            True,
+        )
+        assert entry.commit() is True
+        assert entry.is_compressed() is False
+        assert entry.stored_path.exists()

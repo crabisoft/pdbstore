@@ -287,3 +287,18 @@ def build_files_list(
             files_list.append(Path(file))
 
     return files_list
+
+
+def get_file_size(path: PathLike) -> int:
+    """Get file size
+
+    :param path: The file path
+    :return: The file size
+    """
+    if not path:
+        return 0
+    file_path: Path = util.str_to_path(path)
+    if not file_path or not file_path.exists():
+        return 0
+
+    return file_path.stat().st_size
