@@ -5,6 +5,7 @@ import pytest
 
 from pdbstore.exceptions import ReadFileError
 from pdbstore.io import file
+from pdbstore.typing import Generator
 
 NEWLINES_FILE_CONTENT = "first line\nsecond line"
 
@@ -13,7 +14,7 @@ TEXT_FILE_WITH_CRLF = "first line\r\nsecond line"
 
 
 @pytest.fixture(name="file_access")
-def fixture_file_access(tmp_path, request) -> Path:
+def fixture_file_access(tmp_path, request) -> Generator[Path, None, None]:
     """Generate temporary history file"""
     dest = tmp_path / f"file-{time.time()}.bin"
     with open(dest, "wb") as hfp:
@@ -84,3 +85,18 @@ def test_text_file_with_split_windows(file_access):
 
     content = file.read_text_file(file_access, True)
     assert content == NEWLINES_FILE_CONTENT.split("\n")
+
+
+@pytest.mark.parametrize("file_access", [[TEXT_FILE_WITH_CRLF]], indirect=True)
+def test_valid_file_size(file_access):
+    """test valid file size behavior"""
+    assert file.get_file_size(file_access) > 0
+
+
+@pytest.mark.parametrize(
+    "file_path",
+    [None, "", "/invalid/path"],
+)
+def test_invalid_file_size(file_path):
+    """test invalid file size behavior"""
+    assert file.get_file_size(file_path) == 0
