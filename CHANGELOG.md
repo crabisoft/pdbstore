@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v0.1.2 (2024-03-03)
+
+### Fix
+
+* fix: invalid compressed file for huge file (#11) ([`a4c62cc`](https://github.com/crabisoft/pdbstore/commit/a4c62cc80512023473332aad5ff39ef051ca68d5))
+
 ## v0.1.1 (2024-02-28)
 
 ### Fix
