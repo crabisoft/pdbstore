@@ -359,9 +359,6 @@ class Transaction:
                 add_res.group("comment"),
             )
 
-        if transaction_type != TransactionType.DEL.value:
-            return None
-
         del_res = TransactionRegEx.TRANSACTION_DEL_RE.match(line_res.group("tail"))
         if not del_res:
             PDBStoreOutput().debug(
