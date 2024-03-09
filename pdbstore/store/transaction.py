@@ -1,5 +1,6 @@
 """ Manage a single transaction.
 """
+import concurrent.futures as cf
 import os
 import re
 from datetime import datetime
@@ -16,7 +17,7 @@ from pdbstore.io.output import PDBStoreOutput
 from pdbstore.store.entry import TransactionEntry
 from pdbstore.store.summary import OpStatus, Summary
 from pdbstore.store.transaction_type import TransactionType
-from pdbstore.typing import List, Optional, PathLike, Union
+from pdbstore.typing import List, Optional, PathLike, Tuple, Union
 
 __all__ = ["Transaction"]
 
@@ -200,6 +201,18 @@ class Transaction:
         # Not found
         return None
 
+    @staticmethod
+    def __commit_entry(
+        entry: TransactionEntry, force: Optional[bool] = False
+    ) -> Tuple[TransactionEntry, Union[OpStatus, PDBStoreException]]:
+        try:
+            return (
+                entry,
+                OpStatus.SUCCESS if entry.commit(force) else OpStatus.SKIPPED,
+            )
+        except PDBStoreException as exc:  # pragma: no cover
+            return (entry, exc)
+
     def commit(
         self,
         transaction_id: str,
@@ -219,7 +232,7 @@ class Transaction:
 
         if self.is_committed():
             PDBStoreOutput().warning(
-                "Transction ID {self.transaction_id} is already committed, so ignore it",
+                f"Transction ID {self.transaction_id} is already committed, so ignore it",
             )
             summary.status = OpStatus.SKIPPED
             return summary
@@ -234,22 +247,24 @@ class Transaction:
         self.transaction_id = transaction_id
 
         # publish all entries files to the store
-        for entry in self.entries:
-            try:
-                status = OpStatus.SUCCESS if entry.commit(force) else OpStatus.SKIPPED
-                summary.add_entry(
-                    entry,
-                    status,
-                    TransactionType.ADD,
-                )
-            except PDBStoreException as exc:  # pragma: no cover
-                summary.status = OpStatus.FAILED
-                summary.add_entry(
-                    entry,
-                    OpStatus.FAILED,
-                    TransactionType.ADD,
-                )
-                PDBStoreOutput().error(exc)
+        with cf.ThreadPoolExecutor() as executor:
+            for result in executor.map(
+                lambda entry: Transaction.__commit_entry(entry, force), self.entries
+            ):
+                if isinstance(result[1], OpStatus):
+                    summary.add_entry(
+                        result[0],
+                        result[1],
+                        TransactionType.ADD,
+                    )
+                else:
+                    summary.status = OpStatus.FAILED
+                    summary.add_entry(
+                        result[0],
+                        OpStatus.FAILED,
+                        TransactionType.ADD,
+                    )
+                    PDBStoreOutput().error(result[1])
 
         # write new transaction file
         try:
@@ -343,9 +358,6 @@ class Transaction:
                 add_res.group("version"),
                 add_res.group("comment"),
             )
-
-        if transaction_type != TransactionType.DEL.value:
-            return None
 
         del_res = TransactionRegEx.TRANSACTION_DEL_RE.match(line_res.group("tail"))
         if not del_res:
