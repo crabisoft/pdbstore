@@ -232,7 +232,7 @@ class Transaction:
 
         if self.is_committed():
             PDBStoreOutput().warning(
-                "Transction ID {self.transaction_id} is already committed, so ignore it",
+                f"Transction ID {self.transaction_id} is already committed, so ignore it",
             )
             summary.status = OpStatus.SKIPPED
             return summary
