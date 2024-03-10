@@ -1,3 +1,4 @@
+from pathlib import Path
 from unittest import mock
 
 import pytest
@@ -11,6 +12,7 @@ from pdbstore.cli.exit_codes import (
     ERROR_UNEXPECTED,
     SUCCESS,
 )
+from pdbstore.io import cab
 
 
 def test_incomplete_no_action():
@@ -155,3 +157,38 @@ def test_no_compression(tmp_store_dir, test_data_native_dir):
 
     # Test with direct call to main function
     assert cli.main(["add"] + argv) == ERROR_GENERAL
+
+
+@pytest.mark.skipif(cab.compress is None, reason="compression not available")
+def test_valid_compression(tmp_store_dir, test_data_native_dir):
+    """test add command when compression is supported"""
+    argv = [
+        "--store-dir",
+        str(tmp_store_dir),
+        "--product-name",
+        "myproduct",
+        "--product-version",
+        "1.0.0",
+        "--compress",
+        str(test_data_native_dir / "dummyapp.pdb"),
+    ]
+
+    # Test through direct command-line
+    with mock.patch(
+        "sys.argv",
+        ["pdbstore", "add"] + argv,
+    ):
+        assert cli.main() == SUCCESS
+
+    stored_path: Path = (
+        tmp_store_dir
+        / "dummyapp.pdb"
+        / "DBF7CE25C6DC4E0EA9AD889187E296A21"
+        / "dummyapp.pd_"
+    )
+    assert stored_path.exists() is True
+    with stored_path.open("rb") as fpsp:
+        assert fpsp.read(4) == b"MSCF"
+
+    # Test with direct call to main function
+    assert cli.main(["add"] + argv) == SUCCESS

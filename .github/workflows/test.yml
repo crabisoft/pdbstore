@@ -32,38 +32,25 @@ jobs:
           - version: "3.10"
             toxenv: py310
           - version: "3.11"
-            toxenv: py311
+            toxenv: py311,cli
         include:
           - os: windows-latest
             python:
               version: "3.11"
-              toxenv: py311
+              toxenv: py311,cli
     steps:
       - uses: actions/checkout@v4.1.0
       - name: Set up Python ${{ matrix.python.version }}
         uses: actions/setup-python@v4.7.0
         with:
           python-version: ${{ matrix.python.version }}
+      - name: Install gcab
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: sudo apt-get install -y gcab
       - name: Install dependencies
         run: pip install tox
       - name: Run tests
-        run: tox -e ${{ matrix.python.toxenv }} --skip-missing-interpreters false
-
-  functional:
-    runs-on: ubuntu-22.04
-    strategy:
-      matrix:
-        toxenv: [cli]
-    steps:
-      - uses: actions/checkout@v4.1.0
-      - name: Set up Python
-        uses: actions/setup-python@v4.7.0
-        with:
-          python-version: "3.11"
-      - name: Install dependencies
-        run: pip install tox
-      - name: Run tests
-        run: tox -e ${{ matrix.toxenv }} -- --override-ini='log_cli=True'
+        run: tox -e ${{ matrix.python.toxenv }} -- --override-ini='log_cli=True'
 
   coverage:
     runs-on: ubuntu-22.04
