@@ -196,3 +196,28 @@ class ConfigParser:  # pylint: disable=too-few-public-methods
             if value is not None:
                 setattr(self, item, value)
         return self
+
+    def get_store_directory(self, name: str) -> Optional[str]:
+        """Retrieve store directory path given by its name"""
+        if not self._files:
+            return None
+
+        _config = configparser.ConfigParser()
+        _config.read(self._files, encoding="utf-8")
+
+        if not _config.has_section(name):
+            raise ConfigIDError(
+                "Impossible to get symbol store details from " f"configuration ({name})"
+            )
+
+        if not _config.has_option(name, "store"):
+            raise ConfigDataError(
+                "Impossible to get symbol store directory from "
+                f"configuration ({name})"
+            )
+
+        try:
+            store_dir = _config.get(name, "store")
+        except _CONFIG_PARSER_ERRORS:
+            store_dir = None
+        return store_dir

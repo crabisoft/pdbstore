@@ -50,19 +50,13 @@ def test_complete(capsys, tmp_store_dir, test_data_native_dir):
         assert cli.cli.main() == ERROR_ENCOUNTERED
         captured = capsys.readouterr()
         assert "Number of errors = 1" in captured.out
-        assert (
-            "ERROR: ID 0000000001 doesn't exist or wasn't an add transaction transaction"
-            in captured.err
-        )
+        assert "ERROR: ID 0000000001 doesn't exist" in captured.err
 
     # Test with direct call to main function  when file not present yet
     assert cli.cli.main(["del", "2"] + argv[0:2]) == ERROR_ENCOUNTERED
     captured = capsys.readouterr()
     assert "Number of errors = 1" in captured.out
-    assert (
-        "ERROR: ID 0000000002 doesn't exist or wasn't an add transaction transaction"
-        in captured.err
-    )
+    assert "ERROR: ID 0000000002 doesn't exist" in captured.err
 
     # New file into the store and twice to have 2 records
     assert cli.cli.main(["add"] + argv) == 0

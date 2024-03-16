@@ -7,10 +7,10 @@ from pdbstore.const import ENV_PDBSTORE_STORAGE_DIR
 
 
 def add_global_arguments(
-    parser: argparse.ArgumentParser, add_help: bool = True
+    parser: argparse.ArgumentParser, add_help: bool = True, single: bool = True
 ) -> None:
     """Add global parsers command-line options."""
-    BaseCommand.init_config(parser)
+    BaseCommand.init_config(parser, single)
     BaseCommand.init_log_file(parser)
     BaseCommand.init_log_levels(parser)
 
@@ -27,22 +27,40 @@ def add_global_arguments(
         )
 
 
-def add_storage_arguments(parser: argparse.ArgumentParser) -> None:
+def add_storage_arguments(parser: argparse.ArgumentParser, single: bool = True) -> None:
     """Add storage command-line options"""
+    if single:
+        help_msg = (
+            "Local root directory for the symbol store. "
+            f"[env var: {ENV_PDBSTORE_STORAGE_DIR}]"
+        )
+    else:
+        help_msg = "Local root directory for the output symbol store."
+
     parser.add_argument(
         "-s",
         "--store-dir",
         metavar="DIRECTORY",
         dest="store_dir",
         type=str,
-        help=(
-            "Local root directory for the symbol store. "
-            f"[env var: {ENV_PDBSTORE_STORAGE_DIR}]"
-        ),
+        help=help_msg,
         required=False,
         default=os.getenv(ENV_PDBSTORE_STORAGE_DIR),
         action=OnceArgument,
     )
+
+    if not single:
+        parser.add_argument(
+            "-i",
+            "--input-store-dir",
+            metavar="DIRECTORY",
+            dest="input_store_dir",
+            type=str,
+            help="Local root directory for the input symbol store.",
+            required=False,
+            default=None,
+            action=OnceArgument,
+        )
 
 
 def add_product_arguments(parser: argparse.ArgumentParser) -> None:

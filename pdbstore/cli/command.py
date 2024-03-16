@@ -84,6 +84,13 @@ class PDBStoreArgumentParser(argparse.ArgumentParser):
             if value is not None:
                 args_dict[key] = value
 
+        if "input_store_id" in args_dict:
+            input_store_name = args_dict.get("input_store_dir")
+            if input_store_name:
+                args_dict["input_store_dir"] = config.get_store_directory(
+                    input_store_name
+                )
+
         return argparse.Namespace(**args_dict)
 
 
@@ -168,7 +175,7 @@ class BaseCommand:
         )
 
     @staticmethod
-    def init_config(parser: argparse.ArgumentParser) -> None:
+    def init_config(parser: argparse.ArgumentParser, single: bool = True) -> None:
         """Add configuration file command-line option"""
         parser.add_argument(
             "-C",
@@ -195,6 +202,18 @@ class BaseCommand:
             required=False,
             action=OnceArgument,
         )
+
+        if not single:
+            parser.add_argument(
+                "-I",
+                "--input-store",
+                metavar="NAME",
+                dest="input_store_id",
+                type=str,
+                help=("Which configuration section should be used as input store. "),
+                required=False,
+                action=OnceArgument,
+            )
 
     @property
     def _help_formatters(self) -> List[str]:

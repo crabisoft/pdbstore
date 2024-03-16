@@ -88,7 +88,7 @@ class Store:
         product: str,
         version: str,
         comment: Optional[str] = None,
-        transaction_type: str = "add",
+        transaction_type: TransactionType = TransactionType.ADD,
     ) -> Transaction:
         """Create a new transaction.
 
@@ -107,6 +107,37 @@ class Store:
             comment=comment,
         )
 
+    def find_transaction(
+        self, transaction_id: int, transaction_type: Optional[TransactionType] = None
+    ) -> Transaction:
+        """Find an existing transaction given by its id
+
+        :param transaction_id: The transaction id.
+        :param transaction_type: Optional transaction type. It can be ``add``,  ``del`` or ``None``.
+        :return: A :class:`Transaction <pdbstore.store.transaction.Transaction>` object
+                          if `transaction_id` exists, else None
+        :raise:
+            :TransactionNotFoundError: The specified transition cannot be found.
+            :ImproperTransactionTypeError: The specified transition exists but with
+                                           a different transaction type.
+            :WriteFileError: An error occurs when updating global file.
+        """
+        trans_id = f"{transaction_id:010d}"
+        PDBStoreOutput().debug("Finding ID ... {trans_id}")
+        transaction = self.transactions.find(trans_id)
+        if not transaction:
+            raise exceptions.TransactionNotFoundError(transaction_id)
+        if (
+            transaction_type
+            and transaction_type.value != transaction.transaction_type.value
+        ):
+            raise exceptions.ImproperTransactionTypeError(
+                transaction_id,
+                transaction.transaction_type.value,
+                transaction_type.value,
+            )
+        return transaction
+
     def delete_transaction(self, transaction_id: int, dry_run: bool = False) -> Summary:
         """Delete an existing transaction given by its id
 
@@ -116,14 +147,14 @@ class Store:
         :return: A :class:`Summary <pdbstore.store.summary.Summary>` object
         :raise:
             :TransactionNotFoundError: The specified transition cannot be found.
+            :ImproperTransactionTypeError: The specified transition exists but with
+                a different transaction type.
             :WriteFileError: An error occurs when updating global file.
         """
         # Retrieve the Transition object assocaited the specified id
-        trans_id = f"{transaction_id:010d}"
-        PDBStoreOutput().debug("Finding ID ... {trans_id}")
-        transaction = self.transactions.find(trans_id)
-        if transaction is None:
-            raise exceptions.TransactionNotFoundError(trans_id)
+        transaction: Transaction = self.find_transaction(
+            transaction_id, TransactionType.ADD
+        )
 
         # Remove the transition from the history file
         summary = self.transactions.delete(transaction, dry_run)
@@ -353,3 +384,40 @@ class Store:
             if not filter_cb or filter_cb(transaction):
                 for entry in transaction.entries:
                     yield (transaction, entry)
+
+    def promote_transaction(
+        self, transaction: Transaction, comment: Optional[str] = None
+    ) -> Summary:
+        """Copy an existing transaction from another store.
+
+        This function will clone the ``transaction`` object,
+        :param transaction: The :class:`Transaction <pdbstore.store.transaction.Transaction>`
+                            object to be copied.
+        :return: The new :class:`Transaction <pdbstore.store.transaction.Transaction>` object
+                 from the store
+        """
+
+        if not transaction:
+            return Summary(None, OpStatus.FAILED, None, "Invalid transaction object")
+        if transaction.transaction_type != TransactionType.ADD:
+            return Summary(None, OpStatus.FAILED, None, "Invalid transaction type")
+
+        if not comment:
+            comment = f"{transaction.comment} : " if transaction.comment else ""
+            comment += f"Promote {transaction} from {transaction.store}"
+
+        PDBStoreOutput().info(
+            f"Promoting {transaction.transaction_id} from {transaction.store.rootdir} ..."
+        )
+
+        new_transaction = self.new_transaction(
+            transaction.product or "", transaction.version or "", comment
+        )
+
+        for entry in transaction.entries:
+            new_transaction.add_entry(entry.clone(self))
+
+        summary = self.commit(new_transaction, False)
+        if summary.status == OpStatus.SUCCESS:
+            transaction.mark_promoted()
+        return summary

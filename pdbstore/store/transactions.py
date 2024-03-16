@@ -144,6 +144,7 @@ class Transactions:
         try:
             with open(self.store.server_file_path, "ab") as fps:
                 fps.write(f"{transaction}{os.linesep}".encode("utf-8"))
+            self.transactions[transaction.transaction_id] = transaction
         except Exception as exc:
             raise WriteFileError(
                 None, f"failed to append '{transaction}' in server file"

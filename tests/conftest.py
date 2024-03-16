@@ -58,6 +58,22 @@ def tmp_store(tmp_store_dir) -> pdbstore.Store:
     yield store
 
 
+@pytest.fixture(name="tmp_store_input_dir")
+def fixture_tmp_store_input_dir(tmp_path) -> Path:
+    """Generate temporary history file"""
+    local_store_dir = tmp_path / "store_in"
+    local_store_dir.mkdir(parents=True)
+    yield local_store_dir
+    shutil.rmtree(local_store_dir)
+
+
+@pytest.fixture
+def tmp_store_input(tmp_store_input_dir) -> pdbstore.Store:
+    """Generate temporary history file"""
+    store = pdbstore.Store(tmp_store_input_dir)
+    yield store
+
+
 @pytest.fixture
 def dynamic_config_file(tmp_path, tmp_store_dir) -> Path:
     """Generate temporary configuration file"""

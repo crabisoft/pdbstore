@@ -240,3 +240,16 @@ class TransactionEntry:
             except OSError:
                 PDBStoreOutput().error(f"failed to get file size for {str(file_path)}")
         return disk_usage
+
+    def clone(
+        self, store: Optional["Store"] = None  # type: ignore[name-defined] # noqa: F821
+    ) -> "TransactionEntry":
+        """Clone the transaction entry.
+
+        :param store: Optional :class:`Store <pdbstore.store.store.Store>` object to be
+                      associated to the cloned entry
+        :return: The cloned :class:`TransactionEntry` object
+        """
+        return TransactionEntry.load(
+            store, self.file_name, self.file_hash, self.source_file
+        )

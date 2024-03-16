@@ -3,6 +3,7 @@
 import concurrent.futures as cf
 import os
 import re
+import shutil
 from datetime import datetime
 from pathlib import Path
 
@@ -43,7 +44,7 @@ class Transaction:
         self,
         store: "Store",  # type: ignore[name-defined] # noqa: F821
         transaction_id: Union[str, None] = None,
-        transaction_type: str = "add",
+        transaction_type: Union[str | TransactionType] = TransactionType.ADD,
         ref: str = "file",
         timestamp: Union[datetime, None] = None,
         product: Union[str, None] = None,
@@ -60,8 +61,12 @@ class Transaction:
         self.version: Union[str, None] = version
         self.comment: Union[str, None] = comment
         self.deleted_id: Union[str, None] = deleted_id
-        if transaction_type in [member.value for member in TransactionType]:
-            self.transaction_type: TransactionType = TransactionType(transaction_type)
+        if isinstance(transaction_type, TransactionType):
+            self.transaction_type: TransactionType = transaction_type
+        elif transaction_type in [member.value for member in TransactionType]:
+            self.transaction_type: TransactionType = TransactionType(  # type: ignore[no-redef]
+                transaction_type
+            )
         else:
             raise PDBStoreException(
                 f"{transaction_type} : unsupported transaction type keyword"
@@ -98,6 +103,17 @@ class Transaction:
             return False
         deleted_path: Path = Path(f"{self._entries_file_path()}.deleted")
         if deleted_path.exists():
+            return True
+        return False
+
+    def is_promoted(self) -> bool:
+        """Determine whether the transaction is promoted or not
+
+        :return: True if it is a promoted transaction, else False."""
+        if not self.is_committed():
+            return False
+        promoted_path: Path = Path(f"{self._entries_file_path()}.promoted")
+        if promoted_path.exists():
             return True
         return False
 
@@ -281,7 +297,7 @@ class Transaction:
         This function will rename existing transaction file by appending ``.delete``.
 
         :raise:
-            :RenameFileError: Failed to update history file
+            :RenameFileError: Failed to rename the transaction file
         """
         src: Path = self._entries_file_path()
         if not src.is_file():
@@ -293,6 +309,27 @@ class Transaction:
         try:
             os.rename(src, dest)
         except OSError as ex:  # pragma: no cover
+            raise RenameFileError(src, dest) from ex
+
+    def mark_promoted(self) -> None:
+        """Tag this transaction as promoted
+
+        This function will copy existing transaction file by appending ``.promoted``
+        to the new file name.
+
+        :raise:
+            :RenameFileError: Failed to rename the transaction file
+        """
+        src: Path = self._entries_file_path()
+        if not src.is_file():
+            PDBStoreOutput().warning(
+                f"{src} : file not found, so not possible to mark it as promoted",
+            )
+            return
+        dest: Path = Path(f"{src}.promoted")
+        try:
+            shutil.copyfile(src, dest)
+        except IOError as ex:  # pragma: no cover
             raise RenameFileError(src, dest) from ex
 
     def __str__(self) -> str:

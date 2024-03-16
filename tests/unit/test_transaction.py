@@ -76,6 +76,22 @@ def test_deleted(tmp_store, monkeypatch, capsys):
             ren_mock.assert_called()
 
 
+def test_promoted(tmp_store, monkeypatch, capsys):
+    """test promoted tag"""
+    transaction = Transaction(tmp_store, "0000000001", TransactionType.ADD.value)
+    with monkeypatch.context() as mpc:
+        mpc.setattr(Path, "is_file", lambda a: False)
+        transaction.mark_promoted()
+        assert (
+            "file not found, so not possible to mark it as promoted"
+            in capsys.readouterr().err
+        )
+        mpc.setattr(Path, "is_file", lambda a: True)
+        with mock.patch("shutil.copyfile", return_value=True) as ren_mock:
+            transaction.mark_promoted()
+            ren_mock.assert_called()
+
+
 def test_representation(tmp_store):
     """test transaction representation"""
     transaction = Transaction(
