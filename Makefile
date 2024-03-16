@@ -65,7 +65,11 @@ $(PRECOMMIT_EXE): | $(VENV_BIN_DIR)
 $(VENV_BIN_DIR):
 	$(NOISE)$(PYTHON) -m venv .venv
 
-## -- Syntax checkers ---------------------------------------------------------
+## -- Tox ---------------------------------------------------------------------
+
+tox: | $(TOX_EXE) ## Execute specific tox environment using e parameter (ex. make tox e=py311)
+	$(NOISE)$(eval e ?= ALL)
+	$(NOISE)$(TOX_CMD) -e $(e) $(TOX_ARG)
 
 syntax: e=syntax ## Perform all formatting, styling and coding checks
 syntax: tox
@@ -87,11 +91,9 @@ pylint: tox
 
 cover: e=cover ## Generate coverate report
 cover: tox
-	$(NOISE)$(TOX_CMD) -e cover
 
-tox: | $(TOX_EXE) ## Execute specific tox environment using e parameter (ex. make tox e=py311)
-	$(NOISE)$(eval e ?= ALL)
-	$(NOISE)$(TOX_CMD) -e $(e) $(TOX_ARG)
+doc: e=doc ## Generate documentation
+doc: tox
 
 ## -- Testing -----------------------------------------------------------------
 
