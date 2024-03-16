@@ -37,6 +37,9 @@ homepage = "https://github.com/crabisoft/pdbstore"
 issues = "https://github.com/crabisoft/pdbstore/issues"
 repository = "http://github.com/crabisoft/pdbstore.git"
 
+[tool.black]
+line-length = 100
+
 [tool.isort]
 profile = "black"
 multi_line_output = 3
