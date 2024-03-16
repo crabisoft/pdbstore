@@ -16,7 +16,7 @@ Files
 
 ``pdbstore`` looks up 3 configuration files by default:
 
-``PYTHON_PDB_CFG`` environment variable
+``PDBSTORE_CFG`` environment variable
     An environment variable that contains the path to a configuration file
 
 ``/etc/pdbstore.cfg``
