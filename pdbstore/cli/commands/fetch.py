@@ -212,5 +212,5 @@ def fetch(parser: PDBStoreArgumentParser, *args: Any) -> Any:
         except Exception as exc:  # pylint: disable=broad-except # pragma: no cover
             summary.add_file(util.path_to_str(file_path), OpStatus.FAILED, str(exc))
             output.error(exc)
-            output.error("unexpected error when querying information for {file_path}")
+            output.error(f"unexpected error when fetching information for {file_path}")
     return summary

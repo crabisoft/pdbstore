@@ -151,6 +151,7 @@ def add(parser: PDBStoreArgumentParser, *args: Any) -> Any:
             output.error(
                 f"unexpected error when adding {file} with the following error:"
             )
+            output.error(exg)
 
     if success > 0:
         # Commit modifications to the disk
