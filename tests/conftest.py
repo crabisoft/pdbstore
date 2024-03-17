@@ -97,7 +97,7 @@ def fixture_dynamic_config_file(tmp_path, tmp_store_dir) -> Generator[Path, None
 
 
 @pytest.fixture(name="dynamic_config_object")
-def fixture_dynamic_config_object(dynamic_config_file) -> pdbstore.config.ConfigParser:
+def fixture_dynamic_config_object(dynamic_config_file: Path) -> pdbstore.config.ConfigParser:
     """Generate temporary configuration file"""
     config = pdbstore.config.ConfigParser(None, [dynamic_config_file])
     return config
