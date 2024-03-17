@@ -1,5 +1,27 @@
 # CHANGELOG
 
+## v0.2.0 (2024-03-17)
+
+### Chore
+
+* chore: remove unexpected file ([`08bf34b`](https://github.com/crabisoft/pdbstore/commit/08bf34ba0c43620222e1b4810ee31855d6838437))
+
+* chore: improve makefile (#13) ([`c036350`](https://github.com/crabisoft/pdbstore/commit/c036350db8f34606a12b3fed47338721d700bd94))
+
+### Feature
+
+* feat: add promote command (#15) ([`c66fe2e`](https://github.com/crabisoft/pdbstore/commit/c66fe2eb318ab269a054272b99979af47b73e9c8))
+
+* feat: commit files in parallel (#12) ([`88b5084`](https://github.com/crabisoft/pdbstore/commit/88b5084674a3f477ef8993f87d0bac490edb8a49))
+
+### Test
+
+* test: add dedicated compression test when supported (#14) ([`3b6dfda`](https://github.com/crabisoft/pdbstore/commit/3b6dfdab3eb58d35735d0149d480cc9488548ff6))
+
+### Unknown
+
+* doc: add promote command (#16) ([`c0e5328`](https://github.com/crabisoft/pdbstore/commit/c0e5328e1f725bc7eeac4fc98f802effd51f7bc0))
+
 ## v0.1.2 (2024-03-03)
 
 ### Fix
