@@ -69,9 +69,7 @@ keep = 1
 @pytest.fixture(autouse=True, name="default_files")
 def fixture_default_files(monkeypatch):
     """Overrides mocked default files from conftest.py as we have our own mocks here."""
-    monkeypatch.setattr(
-        pdbstore.config, "_DEFAULT_CONFIG_FILES", config._DEFAULT_CONFIG_FILES
-    )
+    monkeypatch.setattr(pdbstore.config, "_DEFAULT_CONFIG_FILES", config._DEFAULT_CONFIG_FILES)
 
 
 def _mock_nonexistent_file(*_, **__):
@@ -103,9 +101,7 @@ def test_env_config_defined(monkeypatch):
         monkeypatch.setenv("PDBSTORE_CFG", "/valid/path")
         mpc.setattr(Path, "resolve", _mock_existent_file)
         mpc.setattr(config, "_DEFAULT_CONFIG_FILES", [])
-        assert config._get_config_files() == [
-            str(Path("/valid/path").resolve(strict=True))
-        ]
+        assert config._get_config_files() == [str(Path("/valid/path").resolve(strict=True))]
 
 
 def test_env_config_valid_user_defined(monkeypatch):
@@ -212,9 +208,8 @@ def test_invalid_data(_open, monkeypatch):
 
         with pytest.raises(config.ConfigIDError) as exc:
             config.ConfigParser("sectionnotfound")
-        assert (
-            "Impossible to get symbol store details from configuration (sectionnotfound)"
-            in str(exc.value)
+        assert "Impossible to get symbol store details from configuration (sectionnotfound)" in str(
+            exc.value
         )
 
 
@@ -239,3 +234,34 @@ def test_invalid_global_config(_open, monkeypatch):
         with pytest.raises(config.ConfigDataError) as exc:
             config.ConfigParser()
         assert "Invalid value detected for compress entry from" in str(exc.value)
+
+
+@mock.patch("builtins.open")
+def test_valid_get_store_directory(_open, monkeypatch):
+    """test get_store_directory behavior for valid execution"""
+    fds = io.StringIO(VALID_CONFIG)
+    fds.close = mock.Mock(return_value=None, side_effect=lambda: fds.seek(0))
+    _open.return_value = fds
+    with monkeypatch.context() as mpc:
+        mpc.setattr(Path, "resolve", _mock_existent_file)
+        cfg = config.ConfigParser("release")
+        assert "/some/where/release" == cfg.get_store_directory("release")
+
+
+@mock.patch("builtins.open")
+def test_invalid_get_store_directory(_open, monkeypatch):
+    """test get_store_directory behavior for invalid execution"""
+    fds = io.StringIO(INVALID_DATA_CONFIG)
+    fds.close = mock.Mock(return_value=None, side_effect=lambda: fds.seek(0))
+    _open.return_value = fds
+    with monkeypatch.context() as mpc:
+        mpc.setattr(Path, "resolve", _mock_existent_file)
+        cfg = config.ConfigParser("release")
+
+        with pytest.raises(exceptions.ConfigIDError):
+            cfg.get_store_directory("not_present")
+        with pytest.raises(exceptions.ConfigDataError):
+            cfg.get_store_directory("noroot")
+
+    cfg = config.ConfigParser()
+    assert cfg.get_store_directory("release") is None

@@ -44,7 +44,7 @@ class Transaction:
         self,
         store: "Store",  # type: ignore[name-defined] # noqa: F821
         transaction_id: Union[str, None] = None,
-        transaction_type: Union[str | TransactionType] = TransactionType.ADD,
+        transaction_type: TransactionType = TransactionType.ADD,
         ref: str = "file",
         timestamp: Union[datetime, None] = None,
         product: Union[str, None] = None,
@@ -68,9 +68,7 @@ class Transaction:
                 transaction_type
             )
         else:
-            raise PDBStoreException(
-                f"{transaction_type} : unsupported transaction type keyword"
-            )
+            raise PDBStoreException(f"{transaction_type} : unsupported transaction type keyword")
 
     @property
     def id(self) -> str:  # pylint: disable=invalid-name
@@ -219,12 +217,14 @@ class Transaction:
 
     @staticmethod
     def __commit_entry(
-        entry: TransactionEntry, force: Optional[bool] = False
+        entry: TransactionEntry,
+        force: Optional[bool] = False,
+        store: Optional["Store"] = None,  # type: ignore[name-defined] # noqa F821
     ) -> Tuple[TransactionEntry, Union[OpStatus, PDBStoreException]]:
         try:
             return (
                 entry,
-                OpStatus.SUCCESS if entry.commit(force) else OpStatus.SKIPPED,
+                OpStatus.SUCCESS if entry.commit(force, store) else OpStatus.SKIPPED,
             )
         except PDBStoreException as exc:  # pragma: no cover
             return (entry, exc)
@@ -234,17 +234,24 @@ class Transaction:
         transaction_id: str,
         timestamp: datetime,
         force: Optional[bool] = False,
+        store: Optional["Store"] = None,  # type: ignore[name-defined] # noqa F821
     ) -> Summary:
-        """Save the transaction on the disk
+        """Save the transaction on the disk.
+
+        If ``store`` is `None`, this function will consider as a standard transaction,
+        else this function will promote the files referenced by this :class:`Transaction` object
+        and stored in ``store`` as a new transaction from its associated
+        :class:`Store <pdbstore.store.store.Store>` object.
 
         :param transaction_id: The transaction ID
         :param timestamp: The transaction date/time
+        :param store: Optional :class:`Store <pdbstore.store.store.Store>` object
         :param force: True to overwrite any existing file from the store, else False.
         :return: True if successful, else False
         :raise:
             :WriteFileError: Failed to update history file
         """
-        summary = Summary(transaction_id, OpStatus.SUCCESS, TransactionType.ADD)
+        summary = Summary(transaction_id, OpStatus.SKIPPED, TransactionType.ADD)
 
         if self.is_committed():
             PDBStoreOutput().warning(
@@ -253,11 +260,11 @@ class Transaction:
             summary.status = OpStatus.SKIPPED
             return summary
         if not self.transactions_entries:
-            PDBStoreOutput().warning(
-                "no entry defined, so not possible to commit on the disk"
-            )
+            PDBStoreOutput().warning("no entry defined, so not possible to commit on the disk")
             summary.status = OpStatus.SKIPPED
             return summary
+
+        self.store.check_admin_dir()
 
         self.timestamp = timestamp
         self.transaction_id = transaction_id
@@ -265,7 +272,8 @@ class Transaction:
         # publish all entries files to the store
         with cf.ThreadPoolExecutor() as executor:
             for result in executor.map(
-                lambda entry: Transaction.__commit_entry(entry, force), self.entries
+                lambda entry: Transaction.__commit_entry(entry, force, store),
+                self.entries,
             ):
                 if isinstance(result[1], OpStatus):
                     summary.add_entry(
@@ -273,6 +281,8 @@ class Transaction:
                         result[1],
                         TransactionType.ADD,
                     )
+                    if summary.status == OpStatus.SKIPPED:
+                        summary.status = OpStatus.SUCCESS
                 else:
                     summary.status = OpStatus.FAILED
                     summary.add_entry(
@@ -283,12 +293,13 @@ class Transaction:
                     PDBStoreOutput().error(result[1])
 
         # write new transaction file
-        try:
-            with open(self._entries_file_path(), "ab") as fpe:
-                for entry in self.entries:
-                    fpe.write(f"{entry}{os.linesep}".encode("utf-8"))
-        except OSError as exo:  # pragma: no cover
-            raise WriteFileError(self._entries_file_path()) from exo
+        if summary.success(True) > 0:
+            try:
+                with open(self._entries_file_path(), "ab") as fpe:
+                    for entry in self.entries:
+                        fpe.write(f"{entry}{os.linesep}".encode("utf-8"))
+            except OSError as exo:  # pragma: no cover
+                raise WriteFileError(self._entries_file_path()) from exo
         return summary
 
     def mark_deleted(self) -> None:
@@ -343,9 +354,7 @@ class Transaction:
         if self.is_delete_operation():
             if not self.deleted_id:
                 return ""
-            return (
-                f"{self.transaction_id},{self.transaction_type.value},{self.deleted_id}"
-            )
+            return f"{self.transaction_id},{self.transaction_type.value},{self.deleted_id}"
 
         if not self.timestamp:
             return ""
@@ -382,13 +391,11 @@ class Transaction:
             if not add_res:
                 return None
 
-            timestamp = datetime.strptime(
-                add_res.group("timestamp"), "%m/%d/%Y,%H:%M:%S"
-            )
+            timestamp = datetime.strptime(add_res.group("timestamp"), "%m/%d/%Y,%H:%M:%S")
             return Transaction(
                 store,
                 transaction_id,
-                transaction_type,
+                TransactionType.ADD,
                 add_res.group("ref"),
                 timestamp,
                 add_res.group("product"),
@@ -398,15 +405,13 @@ class Transaction:
 
         del_res = TransactionRegEx.TRANSACTION_DEL_RE.match(line_res.group("tail"))
         if not del_res:
-            PDBStoreOutput().debug(
-                f"failed to decompress del type ({line_res.groupdict()})"
-            )
+            PDBStoreOutput().debug(f"failed to decompress del type ({line_res.groupdict()})")
             return None
 
         return Transaction(
             store,
             transaction_id,
-            transaction_type,
+            TransactionType.DEL,
             deleted_id=del_res.group("id"),
         )
 

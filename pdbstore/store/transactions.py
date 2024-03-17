@@ -146,9 +146,7 @@ class Transactions:
                 fps.write(f"{transaction}{os.linesep}".encode("utf-8"))
             self.transactions[transaction.transaction_id] = transaction
         except Exception as exc:
-            raise WriteFileError(
-                None, f"failed to append '{transaction}' in server file"
-            ) from exc
+            raise WriteFileError(None, f"failed to append '{transaction}' in server file") from exc
 
     def delete(self, transaction: Transaction, dry_run: bool = False) -> Summary:
         """Delete a transaction.
@@ -192,9 +190,7 @@ class Transactions:
             return summary
 
         # create a list of transaction without the deleted transaction
-        new_transactions = [
-            v for v in self._transactions.values() if v.id != transaction.id
-        ]
+        new_transactions = [v for v in self._transactions.values() if v.id != transaction.id]
 
         # 'delete' transaction listing from server file
         self._rewrite_server_file(new_transactions)
@@ -220,3 +216,7 @@ class Transactions:
                     fpt.write(f"{transaction}{os.linesep}".encode("utf-8"))
         except Exception as exc:
             raise WriteFileError(None, "failed to rewrite the server file") from exc
+
+    def reset(self) -> None:
+        """Reset transactions to an empty dictionary."""
+        self._transactions = {}

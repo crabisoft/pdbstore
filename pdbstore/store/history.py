@@ -1,10 +1,11 @@
 import os
-from typing import List
+from typing import List, Optional
 
 from pdbstore.exceptions import WriteFileError
 from pdbstore.io import file
 from pdbstore.io.output import PDBStoreOutput
 from pdbstore.store.transaction import Transaction
+from pdbstore.store.transaction_type import TransactionType
 
 
 class History:
@@ -12,7 +13,7 @@ class History:
 
     def __init__(self, store: "Store"):  # type: ignore[name-defined] # noqa: F821
         self.store: "Store" = store  # type: ignore[name-defined] # noqa: F821
-        self.transactions_list: List[Transaction] = None  # type: ignore[assignment]
+        self.transactions_list: Optional[List[Transaction]] = None
 
     def file_exists(self) -> bool:
         """Determine whether the history file exists or not
@@ -59,7 +60,12 @@ class History:
         self._write_line(f"{delete_id},del,{transaction.id}")
         if self.transactions_list is not None:
             self.transactions.append(
-                Transaction(self.store, delete_id, deleted_id=transaction.id)
+                Transaction(
+                    self.store,
+                    delete_id,
+                    TransactionType.DEL,
+                    deleted_id=transaction.id,
+                )
             )
 
     def _parse(self) -> List[Transaction]:
@@ -107,3 +113,7 @@ class History:
                 fph.write(new_line.encode("utf-8"))
         except OSError as exc:
             raise WriteFileError(self.store.history_file_path) from exc
+
+    def reset(self) -> None:
+        """Reset to the transactions list to `None`."""
+        self.transactions_list = None

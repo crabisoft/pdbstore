@@ -44,24 +44,18 @@ def test_assert_empty_history(history_store):
     _assert_text_file_contents(history_store.store.history_file_path, "new entry")
 
 
-@pytest.mark.parametrize(
-    "history_store", [[HISTORY_FILE_WITHOUT_NEWLINE]], indirect=True
-)
+@pytest.mark.parametrize("history_store", [[HISTORY_FILE_WITHOUT_NEWLINE]], indirect=True)
 def test_assert_no_newline(history_store):
     """test adding new trasaction line to an empty store"""
     history_store.add("new entry")
-    _assert_text_file_contents(
-        history_store.store.history_file_path, ["firstline", "new entry"]
-    )
+    _assert_text_file_contents(history_store.store.history_file_path, ["firstline", "new entry"])
 
 
 @pytest.mark.parametrize("history_store", [[HISTORY_FILE_WITH_NEWLINE]], indirect=True)
 def test_assert_newline(history_store):
     """test adding new trasaction line to an empty store"""
     history_store.add("new entry")
-    _assert_text_file_contents(
-        history_store.store.history_file_path, ["firstline", "new entry"]
-    )
+    _assert_text_file_contents(history_store.store.history_file_path, ["firstline", "new entry"])
 
 
 def test_commit_empty(tmp_store_dir):
@@ -199,9 +193,7 @@ def test_find_transaction(tmp_store: Store, test_data_native_dir):
         assert tmp_store.find_transaction(2)
 
 
-def test_promote_success(
-    tmp_store_input: Store, tmp_store: Store, test_data_native_dir
-):
+def test_promote_success(tmp_store_input: Store, tmp_store: Store, test_data_native_dir):
     """Test promotion with success"""
     new_transaction = tmp_store_input.new_transaction(
         "my product",
@@ -211,6 +203,7 @@ def test_promote_success(
     new_transaction.register_entry(test_data_native_dir / "dummylib.pdb", False)
     assert tmp_store_input.commit(new_transaction, False).status == OpStatus.SUCCESS
     assert tmp_store.promote_transaction(new_transaction).status == OpStatus.SUCCESS
+    assert new_transaction.is_promoted()
     assert len(tmp_store.transactions.transactions) == 1
     transaction = tmp_store.find_transaction(1, TransactionType.ADD)
     assert transaction

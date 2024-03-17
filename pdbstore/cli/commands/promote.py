@@ -1,8 +1,6 @@
-import json
-
-from pdbstore import util
 from pdbstore.cli.args import add_global_arguments, add_storage_arguments
 from pdbstore.cli.command import pdbstore_command, PDBStoreArgumentParser
+from pdbstore.cli.formatters import summary_json_formatter
 from pdbstore.exceptions import CommandLineError, PDBAbortExecution, PDBStoreException
 from pdbstore.io.output import cli_out_write, PDBStoreOutput
 from pdbstore.store import OpStatus, Store, Summary, TransactionType
@@ -11,85 +9,16 @@ from pdbstore.typing import Any, Optional
 
 def promote_text_formatter(summary: Summary) -> None:
     """Print output text from a Summary object as TEXT format"""
-    display_full_path = getattr(summary, "full_name", False)
-    input_len = 80
-    if display_full_path:
-        for cur in summary.iterator():
-            for queryd in cur.files:
-                symbol_path = queryd.get("path", "")
-                file_path = queryd.get("input", "")
-                if not file_path:
-                    file_path = symbol_path
-                    symbol_path = None
-                file_len = len(symbol_path or file_path)
-                if (file_len + 2) > input_len:
-                    input_len = file_len + 2
+    cli_out_write(f"Number of files promoted = {summary.success(False)}")
+    cli_out_write(f"Number of errors = {summary.failed(False)}")
 
-    cli_out_write(f"{'Input File':<{input_len}s}{'Compressed':^10s} Symbol File")
-    for cur in summary.iterator():
-        for queryd in cur.files:
-            symbol_path = queryd.get("path", "")
-            file_path = queryd.get("input", "")
-            if not file_path:
-                file_path = symbol_path
-                symbol_path = None
-            status: OpStatus = OpStatus.from_str(queryd.get("status", OpStatus.SKIPPED))
-            error_msg = queryd.get("error")
-
-            if not display_full_path:
-                if symbol_path and status == OpStatus.SUCCESS:
-                    symbol_path = util.abbreviate(symbol_path, 80)
-                file_path = util.abbreviate(file_path, 80)
-
-            if status == OpStatus.SUCCESS:
-                compressed = "Yes" if queryd.get("compressed", False) else "No"
-                cli_out_write(
-                    f"{str(file_path):<{input_len}s}{compressed:^10s} {symbol_path}"
-                )
-            elif status == OpStatus.SKIPPED:
-                cli_out_write(
-                    f"{str(file_path):<{input_len}s}{'':^10s} {error_msg or 'Not found'}"
-                )
-            else:
-                cli_out_write(
-                    f"{str(file_path):<{input_len}s}{'':^10s} {error_msg or 'File not found'}"
-                )
-
-    total = summary.failed(True)
-    if total > 0:
-        raise PDBAbortExecution(total)
-
-
-def promote_json_formatter(summary: Summary) -> None:
-    """Print output text from a Summary object as JSON format"""
-    out = []
-    head: Optional[Summary] = summary
-    while head:
-        dct = {
-            "id": head.transaction_id,
-            "type": head.transaction_type.value
-            if head.transaction_type
-            else "undefined",
-            "status": head.status.value,
-            "success": head.success(False),
-            "failure": head.failed(True),
-            "skip": head.skipped(True),
-            "files": head.files,
-            "message": head.error_msg or "",
-        }
-        out.append(dct)
-        head = head.linked
-
-    cli_out_write(json.dumps(out, indent=4))
-
-    total = summary.failed(True)
-    if total > 0:
-        raise PDBAbortExecution(total)
+    if summary.failed(True):
+        raise PDBAbortExecution(summary.failed(True))
 
 
 @pdbstore_command(
     group="Storage",
-    formatters={"text": promote_text_formatter, "json": promote_json_formatter},
+    formatters={"text": promote_text_formatter, "json": summary_json_formatter},
 )
 def promote(parser: PDBStoreArgumentParser, *args: Any) -> Any:
     """
@@ -122,6 +51,15 @@ def promote(parser: PDBStoreArgumentParser, *args: Any) -> Any:
         to check if it's already exists in the store. Defaults to False.""",
     )
 
+    parser.add_argument(
+        "-d",
+        "--display-full-name",
+        dest="full_name",
+        default=False,
+        action="store_true",
+        help="Display file path without abbreviation.",
+    )
+
     add_global_arguments(parser, single=False)
 
     opts = parser.parse_args(*args)
@@ -147,23 +85,19 @@ def promote(parser: PDBStoreArgumentParser, *args: Any) -> Any:
     summary: Summary
     summary_head: Optional[Summary] = None
 
-    for trans_id in (
-        transaction_id if isinstance(transaction_id, list) else [transaction_id]
-    ):
+    for trans_id in transaction_id if isinstance(transaction_id, list) else [transaction_id]:
         try:
-            trans_in = store_in.find_transaction(transaction_id, TransactionType.ADD)
+            trans_in = store_in.find_transaction(trans_id, TransactionType.ADD)
             summary_trans = store_out.promote_transaction(trans_in, opts.comment)
         except PDBStoreException as pdbse:
             summary_trans = Summary(trans_id, OpStatus.FAILED, None, str(pdbse))
         except Exception as exc:  # pylint: disable=broad-except # pragma: no cover
             summary_trans = Summary(trans_id, OpStatus.FAILED, None, str(exc))
-            output.error(f"unexpected error when promoting {transaction_id}")
+            output.error(f"unexpected error when promoting {trans_id}")
             output.error(exc)
 
         if summary_head:
-            summary.linked = (  # noqa: F821 # pylint: disable=used-before-assignment
-                summary_trans
-            )
+            summary.linked = summary_trans  # noqa: F821 # pylint: disable=used-before-assignment
         else:
             summary_head = summary_trans
         summary = summary_trans
