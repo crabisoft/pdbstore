@@ -92,10 +92,10 @@ class TransactionEntry:
     ) -> bool:
         """Commit transaction entry by storing the required filse into the symbol store.
 
-        If ``store`` is `None`, this function will consider as a standard transaction,
-        else this function will promote the files referenced by this :class:`Transaction` object
-        and stored in ``store`` as a new transaction from its associated
-        :class:`Store <pdbstore.store.store.Store>` object.
+        If ``store`` is `None`, this function will consider as a standard transaction entry,
+        else this function will promote the files referenced by this
+        :class:`TransactionEntry <TransactionEntry>` object  and stored them in ``store``
+        as a new entry.
 
         :param force: True to overwrite any existing file from the store, else False.
         :param store: Optional :class:`Store <pdbstore.store.store.Store>` object.

@@ -172,8 +172,9 @@ class Store:
 
         If ``store`` is `None`, this function will consider as a standard transaction,
         else this function will promote the files referenced by ``transaction``
-        :class:`Transaction` object and stored in ``store`` as a new transaction from
-        this :class:`Store <pdbstore.store.store.Store>` object.
+        :class:`Transaction <pdbstore.store.transaction.Transaction>` object and stored
+        in ``store`` as a new transaction from this
+        :class:`Store <pdbstore.store.store.Store>` object.
 
         :param transaction: The transaction to be committed.
         :param force: True to overwrite any existing file from the store, else False.
@@ -386,9 +387,9 @@ class Store:
 
         This function will clone the ``transaction`` object,
         :param transaction: The :class:`Transaction <pdbstore.store.transaction.Transaction>`
-                            object to be copied.
+        object to be copied.
         :return: The new :class:`Transaction <pdbstore.store.transaction.Transaction>` object
-                 from the store
+        from the store
         """
 
         if not transaction:
