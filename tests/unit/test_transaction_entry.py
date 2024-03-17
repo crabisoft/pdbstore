@@ -22,10 +22,7 @@ def test_valid(tmp_store, test_data_native_dir):
     assert entry.file_path == test_data_native_dir / "dummylib.pdb"
     assert (
         entry.stored_path
-        == tmp_store.rootdir
-        / "dummylib.pdb"
-        / "1972BE39B97341928816018A8ECD08D91"
-        / "dummylib.pdb"
+        == tmp_store.rootdir / "dummylib.pdb" / "1972BE39B97341928816018A8ECD08D91" / "dummylib.pdb"
     )
     assert (
         entry.rel_path
@@ -44,10 +41,7 @@ def test_valid(tmp_store, test_data_native_dir):
     assert entry.file_path == test_data_native_dir / "dummylib.pdb"
     assert (
         entry.stored_path
-        == tmp_store.rootdir
-        / "dummylib.pdb"
-        / "1972BE39B97341928816018A8ECD08D91"
-        / "dummylib.pd_"
+        == tmp_store.rootdir / "dummylib.pdb" / "1972BE39B97341928816018A8ECD08D91" / "dummylib.pd_"
     )
     assert (
         entry.rel_path
@@ -91,10 +85,7 @@ def test_creation_success(tmp_store, test_data_native_dir):
     assert entry.file_path == test_data_native_dir / "dummylib.pdb"
     assert (
         entry.stored_path
-        == tmp_store.rootdir
-        / "dummylib.pdb"
-        / "1972BE39B97341928816018A8ECD08D91"
-        / "dummylib.pdb"
+        == tmp_store.rootdir / "dummylib.pdb" / "1972BE39B97341928816018A8ECD08D91" / "dummylib.pdb"
     )
     assert entry.is_committed() is False
     assert entry.is_compressed() is False
@@ -103,9 +94,7 @@ def test_creation_success(tmp_store, test_data_native_dir):
 def test_creation_failure(tmp_store, test_data_native_dir):
     """test static entry creation with failure"""
     with pytest.raises(exceptions.FileNotExistsError):
-        entry = TransactionEntry.create(
-            tmp_store, test_data_native_dir / "notfound.pdb"
-        )
+        entry = TransactionEntry.create(tmp_store, test_data_native_dir / "notfound.pdb")
     entry = TransactionEntry.create(tmp_store, "")
     assert entry is None
 

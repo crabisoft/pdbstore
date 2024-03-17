@@ -44,9 +44,7 @@ def test_summary_json(capsys):
 ]
 """
     )
-    summary = Summary(
-        "0000000014", OpStatus.SUCCESS, TransactionType.ADD, "error_msg", 0
-    )
+    summary = Summary("0000000014", OpStatus.SUCCESS, TransactionType.ADD, "error_msg", 0)
     formatters.summary_json_formatter(summary)
     assert (
         capsys.readouterr().out
@@ -116,9 +114,7 @@ def test_summary_json(capsys):
 ]
 """
     )
-    summary.linked = Summary(
-        "0000000015", OpStatus.SUCCESS, TransactionType.DEL, None, 0
-    )
+    summary.linked = Summary("0000000015", OpStatus.SUCCESS, TransactionType.DEL, None, 0)
     summary.linked.add_file("input.pdb", OpStatus.SKIPPED, "file not found")
     formatters.summary_json_formatter(summary)
     assert (

@@ -8,14 +8,10 @@ from pdbstore.typing import Callable, PathLike, Union
 __all__ = ["compress", "decompress"]
 
 # By default, compression is not supported until we detect the appropriate exectuable
-compress: Union[  # pylint: disable=invalid-name
-    None, Callable[[PathLike, PathLike], None]
-] = None
+compress: Union[None, Callable[[PathLike, PathLike], None]] = None  # pylint: disable=invalid-name
 
 # By default, decompression is not supported until we detect the appropriate exectuable
-decompress: Union[  # pylint: disable=invalid-name
-    None, Callable[[PathLike, PathLike], None]
-] = None
+decompress: Union[None, Callable[[PathLike, PathLike], None]] = None  # pylint: disable=invalid-name
 
 
 def _compress_makecab(src_path: PathLike, dest_path: PathLike) -> None:

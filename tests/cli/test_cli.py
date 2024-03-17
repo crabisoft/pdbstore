@@ -54,8 +54,7 @@ def test_config_error(capsys):
     with mock.patch("sys.argv", ["pdbstore", "--store", "notfound"]):
         assert pdbstore.cli.cli.main() == ERROR_COMMAND_NAME
         assert (
-            "'--store' is not a PDBStore command. See 'pdbstore --help'"
-            in capsys.readouterr().err
+            "'--store' is not a PDBStore command. See 'pdbstore --help'" in capsys.readouterr().err
         )
 
     with mock.patch("sys.argv", ["pdbstore", "add", "--store", "notfound"]):
@@ -73,10 +72,7 @@ def test_config_error(capsys):
 def test_log_file(tmp_path):
     """test -L/--log-file command-line"""
     log_file_path: Path = tmp_path / "test_cli.log"
-    assert (
-        pdbstore.cli.cli.main(["add", "--log-file", str(log_file_path), "--help"])
-        == SUCCESS
-    )
+    assert pdbstore.cli.cli.main(["add", "--log-file", str(log_file_path), "--help"]) == SUCCESS
     PDBStoreOutput.define_log_output(None)
     assert log_file_path.exists() is True
 
@@ -87,10 +83,7 @@ def test_more_than_once(capsys):
         pdbstore.cli.cli.main(["add", "--store", "store1", "--store", "store2"])
         == ERROR_ENCOUNTERED
     )
-    assert (
-        "pdbstore add: error: --store can only be specified once"
-        in capsys.readouterr().err
-    )
+    assert "pdbstore add: error: --store can only be specified once" in capsys.readouterr().err
 
 
 def test_similar_name(capsys):
@@ -132,9 +125,7 @@ def test_commandline_as_module():
     """test command-line invoked as python module"""
 
     command = [sys.executable, "-m", "pdbstore", "--version"]
-    with subprocess.Popen(
-        command, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-    ) as proc:
+    with subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as proc:
         stdout, stderr = proc.communicate()
         assert proc.returncode == 0
         assert stdout.decode().startswith(pdbstore.__version__)

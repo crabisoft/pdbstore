@@ -146,11 +146,9 @@ def add(parser: PDBStoreArgumentParser, *args: Any) -> Any:
         except PDBStoreException as exp:
             output.error(str(exp))
             errors_list.append([file, str(exp)])
-        except Exception as exg:  # pylint: disable=broad-except
+        except Exception as exg:  # pylint: disable=broad-except # pragma: no cover
             errors_list.append([file, str(exg)])
-            output.error(
-                f"unexpected error when adding {file} with the following error:"
-            )
+            output.error(f"unexpected error when adding {file} with the following error:")
             output.error(exg)
 
     if success > 0:
@@ -173,9 +171,7 @@ def add(parser: PDBStoreArgumentParser, *args: Any) -> Any:
     keep_count = opts.keep_count or 0
     head = summary
     if keep_count > 0:
-        summary_clean = store.remove_old_versions(
-            product_name, product_version, keep_count
-        )
+        summary_clean = store.remove_old_versions(product_name, product_version, keep_count)
         head.linked = summary_clean
         head = summary_clean
 

@@ -93,9 +93,7 @@ def test_complete(capsys, tmp_store_dir, test_data_native_dir):
         ["-f", "json", "[]\n", '[\n    {\n        "status": "success"'],
     ],
 )
-def test_multiple_with_config(
-    capsys, dynamic_config_file, test_data_native_dir, formatter
-):
+def test_multiple_with_config(capsys, dynamic_config_file, test_data_native_dir, formatter):
     """test multiple files with different formatters"""
     pdb_path = str(test_data_native_dir / "dummylib.pdb")
     tomorrow = time.strftime("%Y-%m-%d", time.localtime(time.time() + 3600 * 24))
@@ -134,6 +132,5 @@ def test_multiple_with_config(
     assert cli.cli.main(["unused"] + formatter[0:2] + argv[0:4] + [tomorrow]) == SUCCESS
 
     assert (
-        cli.cli.main(["unused"] + formatter[0:2] + argv[0:4] + ["1970-15-05"])
-        == ERROR_UNEXPECTED
+        cli.cli.main(["unused"] + formatter[0:2] + argv[0:4] + ["1970-15-05"]) == ERROR_UNEXPECTED
     )

@@ -181,10 +181,7 @@ def test_valid_compression(tmp_store_dir, test_data_native_dir):
         assert cli.main() == SUCCESS
 
     stored_path: Path = (
-        tmp_store_dir
-        / "dummyapp.pdb"
-        / "DBF7CE25C6DC4E0EA9AD889187E296A21"
-        / "dummyapp.pd_"
+        tmp_store_dir / "dummyapp.pdb" / "DBF7CE25C6DC4E0EA9AD889187E296A21" / "dummyapp.pd_"
     )
     assert stored_path.exists() is True
     with stored_path.open("rb") as fpsp:

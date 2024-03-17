@@ -215,9 +215,7 @@ class PDB:
 
             try:
                 # Parse header to fetch root stream information
-                page_size, _, _, root_stream_size = struct.unpack(
-                    "<IIII", fppdb.read(4 * 4)
-                )
+                page_size, _, _, root_stream_size = struct.unpack("<IIII", fppdb.read(4 * 4))
                 self._root = RootStream(fppdb, page_size, root_stream_size)
 
                 # Extract GUID and age

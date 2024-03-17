@@ -61,17 +61,11 @@ def query_text_formatter(summary: Summary) -> None:
 
             if status == OpStatus.SUCCESS:
                 compressed = "Yes" if queryd.get("compressed", False) else "No"
-                cli_out_write(
-                    f"{input_path:<{input_len}s}{compressed:^10s} {file_path}"
-                )
+                cli_out_write(f"{input_path:<{input_len}s}{compressed:^10s} {file_path}")
             elif status == OpStatus.SKIPPED:
-                cli_out_write(
-                    f"{file_path:<{input_len}s}{'':^10s} {error_msg or 'Not found'}"
-                )
+                cli_out_write(f"{file_path:<{input_len}s}{'':^10s} {error_msg or 'Not found'}")
             else:
-                cli_out_write(
-                    f"{file_path:<{input_len}s}{'':^10s} {error_msg or 'File not found'}"
-                )
+                cli_out_write(f"{file_path:<{input_len}s}{'':^10s} {error_msg or 'File not found'}")
 
     total = summary.failed(True) + summary.skipped(True)
     if total > 0:
@@ -85,9 +79,7 @@ def query_json_formatter(summary: Summary) -> None:
     while head:
         dct = {
             "id": head.transaction_id,
-            "type": head.transaction_type.value
-            if head.transaction_type
-            else "undefined",
+            "type": head.transaction_type.value if head.transaction_type else "undefined",
             "status": head.status.value,
             "success": head.success(False),
             "failure": head.failed(True),
@@ -169,9 +161,7 @@ def query(parser: PDBStoreArgumentParser, *args: Any) -> Any:
 
     for file_path in input_files:
         try:
-            entries: List[Tuple[Transaction, TransactionEntry]] = store.find_entries(
-                file_path
-            )
+            entries: List[Tuple[Transaction, TransactionEntry]] = store.find_entries(file_path)
             if entries:
                 summary.add_entry(
                     entries[0][1],
@@ -187,18 +177,12 @@ def query(parser: PDBStoreArgumentParser, *args: Any) -> Any:
                     OpStatus.SKIPPED,
                 )
         except UnknowFileTypeError:
-            summary.add_file(
-                util.path_to_str(file_path), OpStatus.SKIPPED, "Not a known file type"
-            )
+            summary.add_file(util.path_to_str(file_path), OpStatus.SKIPPED, "Not a known file type")
         except FileNotExistsError:
-            summary.add_file(
-                util.path_to_str(file_path), OpStatus.FAILED, "File not found"
-            )
+            summary.add_file(util.path_to_str(file_path), OpStatus.FAILED, "File not found")
         except PDBStoreException as exp:
-            summary.add_file(
-                util.path_to_str(file_path), OpStatus.FAILED, "ex:" + str(exp)
-            )
-        except Exception as exc:  # pylint: disable=broad-except
+            summary.add_file(util.path_to_str(file_path), OpStatus.FAILED, "ex:" + str(exp))
+        except Exception as exc:  # pylint: disable=broad-except # pragma: no cover
             summary.add_file(util.path_to_str(file_path), OpStatus.FAILED, str(exc))
             output.error(f"unexpected error when querying information for {file_path}")
     return summary

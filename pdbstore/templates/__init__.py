@@ -18,9 +18,7 @@ def get_template(report_type: str, output_format: str) -> Union[Template, None]:
     :return:
         A Jinja template object.
     """
-    template_data = pkgutil.get_data(
-        __name__, output_format + "/" + report_type + ".tmpl"
-    )
+    template_data = pkgutil.get_data(__name__, output_format + "/" + report_type + ".tmpl")
     if template_data is None:
         return None
     return Template(template_data.decode("utf-8"))

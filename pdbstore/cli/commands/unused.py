@@ -25,17 +25,13 @@ def unused_text_formatter(summary: Summary) -> None:
             file_path = file_entry.get("path", "")
             file_date = file_entry.get("date", "N/A")
             transaction_id = file_entry.get("transaction_id", "N/A")
-            status: OpStatus = OpStatus.from_str(
-                file_entry.get("status", OpStatus.SKIPPED)
-            )
+            status: OpStatus = OpStatus.from_str(file_entry.get("status", OpStatus.SKIPPED))
             error_msg = file_entry.get("error")
 
             file_path = util.abbreviate(file_path, 80)
 
             if status == OpStatus.SUCCESS:
-                cli_out_write(
-                    f"{str(file_path):<{input_len}s}{file_date:^10s}  {transaction_id}"
-                )
+                cli_out_write(f"{str(file_path):<{input_len}s}{file_date:^10s}  {transaction_id}")
             else:
                 cli_out_write(
                     f"{str(file_path):<{input_len}s}{'N/A':^10s}  {error_msg or 'File not found'}"
@@ -124,18 +120,12 @@ def unused(parser: PDBStoreArgumentParser, *args: Any) -> Any:
             file_stat: os.stat_result = file_path.stat()
             if file_stat.st_atime < input_date:
                 dct = summary.add_file(entry.rel_path, OpStatus.SUCCESS)
-                dct["date"] = time.strftime(
-                    "%Y-%m-%d", time.localtime(file_stat.st_atime)
-                )
+                dct["date"] = time.strftime("%Y-%m-%d", time.localtime(file_stat.st_atime))
                 dct["transaction_id"] = transaction.id
         except PDBStoreException as exp:  # pragma: no cover
-            summary.add_file(
-                util.path_to_str(entry.rel_path), OpStatus.FAILED, "ex:" + str(exp)
-            )
+            summary.add_file(util.path_to_str(entry.rel_path), OpStatus.FAILED, "ex:" + str(exp))
         except Exception as exc:  # pylint: disable=broad-except # pragma: no cover
-            summary.add_file(
-                util.path_to_str(entry.rel_path), OpStatus.FAILED, str(exc)
-            )
+            summary.add_file(util.path_to_str(entry.rel_path), OpStatus.FAILED, str(exc))
             output.error(exc)
             output.error("unexpected error when checking {file_path} file usage")
 

@@ -12,9 +12,7 @@ DIST_DIR = Path("dist")
 DOCS_DIR = "docs"
 TEST_DIR = "tests"
 SDIST_FILE = f"{__title__}-{__version__}.tar.gz"
-WHEEL_FILE = (
-    f"{__title__.replace('-', '_')}-{__version__}-py{version_info.major}-none-any.whl"
-)
+WHEEL_FILE = f"{__title__.replace('-', '_')}-{__version__}-py{version_info.major}-none-any.whl"
 
 
 def test_sdist_content():
@@ -43,6 +41,4 @@ def test_wheel_excludes_docs_and_tests():
     """test wheel content"""
     run_build(["--outdir", str(DIST_DIR.resolve()), "--wheel", "."])
     with zipfile.ZipFile(DIST_DIR / WHEEL_FILE) as wheel:
-        assert not any(
-            file.startswith((DOCS_DIR, TEST_DIR)) for file in wheel.namelist()
-        )
+        assert not any(file.startswith((DOCS_DIR, TEST_DIR)) for file in wheel.namelist())

@@ -19,9 +19,7 @@ def summary_json_formatter(summary: Summary) -> None:
     while head:
         dct = {
             "id": head.transaction_id,
-            "type": head.transaction_type.value
-            if head.transaction_type
-            else "undefined",
+            "type": head.transaction_type.value if head.transaction_type else "undefined",
             "status": head.status.value,
             "success": head.success(summary.transaction_type != TransactionType.ADD),
             "failure": head.failed(True),

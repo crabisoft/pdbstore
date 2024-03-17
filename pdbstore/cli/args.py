@@ -31,8 +31,7 @@ def add_storage_arguments(parser: argparse.ArgumentParser, single: bool = True) 
     """Add storage command-line options"""
     if single:
         help_msg = (
-            "Local root directory for the symbol store. "
-            f"[env var: {ENV_PDBSTORE_STORAGE_DIR}]"
+            "Local root directory for the symbol store. " f"[env var: {ENV_PDBSTORE_STORAGE_DIR}]"
         )
     else:
         help_msg = "Local root directory for the output symbol store."

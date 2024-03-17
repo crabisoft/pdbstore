@@ -82,9 +82,7 @@ class Summary:
 
     def success(self, full: bool = False) -> int:
         """Retrieve the total of successful operations."""
-        return self._success + (
-            self._linked.success() if (full and self._linked) else 0
-        )
+        return self._success + (self._linked.success() if (full and self._linked) else 0)
 
     def failed(self, full: bool = False) -> int:
         """Retrieve the total of failed operations."""
@@ -96,9 +94,7 @@ class Summary:
 
     def referenced(self, full: bool = False) -> int:
         """Retrieve the total of modified references."""
-        return self._references + (
-            self._linked.referenced() if (full and self._linked) else 0
-        )
+        return self._references + (self._linked.referenced() if (full and self._linked) else 0)
 
     def count(self, success_only: bool = False) -> int:
         """Retrieve the total number of Summary object."""

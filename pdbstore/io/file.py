@@ -87,8 +87,7 @@ def compute_hash_key(file_path: PathLike) -> Union[str, None]:
         # pylint: disable=no-member
         pefile = pe.PE(file_path, fast_load=True)
         return (
-            f"{pefile.FILE_HEADER.TimeDateStamp:x}"
-            f"{pefile.OPTIONAL_HEADER.SizeOfImage:x}"
+            f"{pefile.FILE_HEADER.TimeDateStamp:x}" f"{pefile.OPTIONAL_HEADER.SizeOfImage:x}"
         ).upper()
     except pe.PEFormatError:
         pass
@@ -173,9 +172,7 @@ def extract_dbg_info(file_path: PathLike) -> Optional[Tuple[str, str]]:
                     code_view_entry.entry.PdbFileName[:-1].decode("utf-8")
                 )
             else:
-                pdb_filename = ntpath.basename(
-                    code_view_entry.entry.PdbFileName.decode("utf-8")
-                )
+                pdb_filename = ntpath.basename(code_view_entry.entry.PdbFileName.decode("utf-8"))
             if hasattr(code_view_entry.entry, "Signature_Data5"):
                 # recent pefile version
                 fields = (
@@ -189,27 +186,21 @@ def extract_dbg_info(file_path: PathLike) -> Optional[Tuple[str, str]]:
             else:
                 # pragma: no cover
                 # old pefile version
-                Signature_Data4 = code_view_entry.entry.Signature_Data4[  # pylint: disable=invalid-name
-                    0
-                ]
-                Signature_Data5 = code_view_entry.entry.Signature_Data4[  # pylint: disable=invalid-name
-                    1
-                ]
-                Signature_Data6 = struct.unpack(  # pylint: disable=invalid-name
+
+                signature_data4 = code_view_entry.entry.Signature_Data4[0]
+                signature_data5 = code_view_entry.entry.Signature_Data4[1]
+                signature_data6 = struct.unpack(
                     ">Q",
-                    b"\0\0"
-                    + code_view_entry.entry.Signature_Data4[  # pylint: disable=invalid-name
-                        2:
-                    ],
+                    b"\0\0" + code_view_entry.entry.Signature_Data4[2:],
                 )[0]
 
                 fields = (
                     code_view_entry.entry.Signature_Data1,
                     code_view_entry.entry.Signature_Data2,
                     code_view_entry.entry.Signature_Data3,
-                    Signature_Data4,
-                    Signature_Data5,
-                    Signature_Data6,
+                    signature_data4,
+                    signature_data5,
+                    signature_data6,
                 )
             guid = (
                 str(uuid.UUID(fields=fields)).replace("-", "").upper()

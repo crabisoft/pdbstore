@@ -196,9 +196,7 @@ class UnexpectedError(PDBStoreException):
 class WriteFileError(PDBStoreException):
     """Unexpected error occurs when updating a file"""
 
-    def __init__(
-        self, pathname: Union[None, PathLike], msg: Optional[str] = None
-    ) -> None:
+    def __init__(self, pathname: Union[None, PathLike], msg: Optional[str] = None) -> None:
         if not msg:
             msg = f"failed to write data in {pathname}"
         PDBStoreException.__init__(self, msg)
