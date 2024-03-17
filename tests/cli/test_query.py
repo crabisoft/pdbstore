@@ -50,9 +50,7 @@ def test_complete(capsys, tmp_store_dir, test_data_native_dir):
         + argv[-1:],
     ):
         assert cli.cli.main() == ERROR_ENCOUNTERED
-        assert (
-            re.search(r"dummyapp.pdb\s+Not found", capsys.readouterr().out) is not None
-        )
+        assert re.search(r"dummyapp.pdb\s+Not found", capsys.readouterr().out) is not None
 
     # Test with direct call to main function when file not present yet
     assert cli.cli.main(["query"] + argv[0:2] + argv[-1:]) == ERROR_ENCOUNTERED

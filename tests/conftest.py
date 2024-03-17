@@ -4,6 +4,7 @@ from pathlib import Path
 import pytest
 
 import pdbstore
+from pdbstore.typing import Generator
 
 
 @pytest.fixture(scope="session")
@@ -43,7 +44,7 @@ def default_files(monkeypatch):
 
 
 @pytest.fixture(name="tmp_store_dir")
-def fixture_tmp_store_dir(tmp_path) -> Path:
+def fixture_tmp_store_dir(tmp_path) -> Generator[Path, None, None]:
     """Generate temporary history file"""
     local_store_dir = tmp_path / "store"
     local_store_dir.mkdir(parents=True)
@@ -52,14 +53,30 @@ def fixture_tmp_store_dir(tmp_path) -> Path:
 
 
 @pytest.fixture
-def tmp_store(tmp_store_dir) -> pdbstore.Store:
+def tmp_store(tmp_store_dir) -> Generator[pdbstore.Store, None, None]:
     """Generate temporary history file"""
     store = pdbstore.Store(tmp_store_dir)
     yield store
 
 
+@pytest.fixture(name="tmp_store_input_dir")
+def fixture_tmp_store_input_dir(tmp_path) -> Generator[Path, None, None]:
+    """Generate temporary history file"""
+    local_store_dir = tmp_path / "store_in"
+    local_store_dir.mkdir(parents=True)
+    yield local_store_dir
+    shutil.rmtree(local_store_dir)
+
+
 @pytest.fixture
-def dynamic_config_file(tmp_path, tmp_store_dir) -> Path:
+def tmp_store_input(tmp_store_input_dir) -> Generator[pdbstore.Store, None, None]:
+    """Generate temporary history file"""
+    store = pdbstore.Store(tmp_store_input_dir)
+    yield store
+
+
+@pytest.fixture(name="dynamic_config_file")
+def fixture_dynamic_config_file(tmp_path, tmp_store_dir) -> Generator[Path, None, None]:
     """Generate temporary configuration file"""
     config_path = tmp_path / "config.cfg"
 
@@ -77,3 +94,10 @@ def dynamic_config_file(tmp_path, tmp_store_dir) -> Path:
     config_path.write_text(valid_config)
     yield config_path
     config_path.unlink()
+
+
+@pytest.fixture(name="dynamic_config_object")
+def fixture_dynamic_config_object(dynamic_config_file: Path) -> pdbstore.config.ConfigParser:
+    """Generate temporary configuration file"""
+    config = pdbstore.config.ConfigParser(None, [dynamic_config_file])
+    return config

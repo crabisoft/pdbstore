@@ -68,13 +68,9 @@ class RootStream:
         self.fps.seek(0)
 
         # We assume that magic key is already checked
-        _, major, minor, _, version_len = struct.unpack(
-            "<IHHII", self.fps.read(4 + 2 + 2 + 4 + 4)
-        )
+        _, major, minor, _, version_len = struct.unpack("<IHHII", self.fps.read(4 + 2 + 2 + 4 + 4))
         self.versions = (major, minor)
-        self.version_name = struct.unpack(
-            f"<{version_len}c", self.fps.read(version_len)
-        )
+        self.version_name = struct.unpack(f"<{version_len}c", self.fps.read(version_len))
         _, stream_count = struct.unpack("<HH", self.fps.read(2 + 2))
         streams: List[StreamHeader] = []
         for _ in range(0, stream_count):

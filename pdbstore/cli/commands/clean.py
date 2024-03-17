@@ -91,8 +91,6 @@ def clean(parser: PDBStoreArgumentParser, *args: Any) -> Any:
     store = Store(store_dir)
 
     # Delete the transaction from the store
-    summary = store.remove_old_versions(
-        product_name, product_version, keep_count, comment, dry_run
-    )
+    summary = store.remove_old_versions(product_name, product_version, keep_count, comment, dry_run)
 
     return summary

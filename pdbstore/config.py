@@ -43,9 +43,7 @@ def _get_config_files(
                 resolved = _resolve_file(config_file)
                 resolved_files.append(resolved)
             except OSError as exo:
-                raise ConfigMissingError(
-                    f"Cannot read config from file: {config_file}"
-                ) from exo
+                raise ConfigMissingError(f"Cannot read config from file: {config_file}") from exo
 
         return resolved_files
 
@@ -97,8 +95,7 @@ class ConfigParser:  # pylint: disable=too-few-public-methods
 
         elif self.store_id:
             raise ConfigMissingError(
-                f"Symbol store id was provided ({self.store_id}) "
-                "but no config file found"
+                f"Symbol store id was provided ({self.store_id}) " "but no config file found"
             )
 
     def _parse_config(self) -> None:
@@ -116,19 +113,17 @@ class ConfigParser:  # pylint: disable=too-few-public-methods
 
         if not _config.has_section(self.store_id):
             raise ConfigIDError(
-                "Impossible to get symbol store details from "
-                f"configuration ({self.store_id})"
+                "Impossible to get symbol store details from " f"configuration ({self.store_id})"
             )
 
         if not _config.has_option(self.store_id, "store"):
             raise ConfigDataError(
-                "Impossible to get symbol store directory from "
-                f"configuration ({self.store_id})"
+                "Impossible to get symbol store directory from " f"configuration ({self.store_id})"
             )
 
         try:
             self.store_dir = _config.get(self.store_id, "store")
-        except _CONFIG_PARSER_ERRORS:
+        except _CONFIG_PARSER_ERRORS:  # pragma: no cover
             pass
 
         try:
@@ -136,10 +131,9 @@ class ConfigParser:  # pylint: disable=too-few-public-methods
         except ValueError as exv:
             # Value Error means the option exists but isn't an integer.
             raise ConfigDataError(
-                "Invalid value detected for keep entry from "
-                "global section (integer expected)"
+                "Invalid value detected for keep entry from global section (integer expected)"
             ) from exv
-        except _CONFIG_PARSER_ERRORS:
+        except _CONFIG_PARSER_ERRORS:  # pragma: no cover
             pass
         try:
             self.keep_count = _config.getint(self.store_id, "keep")
@@ -149,7 +143,7 @@ class ConfigParser:  # pylint: disable=too-few-public-methods
                 "Invalid value detected for keep entry from "
                 f"{self.store_id} section (integer expected)"
             ) from exv
-        except _CONFIG_PARSER_ERRORS:
+        except _CONFIG_PARSER_ERRORS:  # pragma: no cover
             pass
 
         try:
@@ -160,7 +154,7 @@ class ConfigParser:  # pylint: disable=too-few-public-methods
                 "Invalid value detected for compress entry from "
                 "global section (boolean expected)"
             ) from exv
-        except _CONFIG_PARSER_ERRORS:
+        except _CONFIG_PARSER_ERRORS:  # pragma: no cover
             pass
         try:
             self.keep_count = _config.getboolean(self.store_id, "compress")
@@ -170,17 +164,17 @@ class ConfigParser:  # pylint: disable=too-few-public-methods
                 "Invalid value detected for compress entry from "
                 f"{self.store_id} section (boolean expected)"
             ) from exv
-        except _CONFIG_PARSER_ERRORS:
+        except _CONFIG_PARSER_ERRORS:  # pragma: no cover
             pass
 
         try:
             self.product_name = _config.get(self.store_id, "product")
-        except _CONFIG_PARSER_ERRORS:
+        except _CONFIG_PARSER_ERRORS:  # pragma: no cover
             pass
 
         try:
             self.product_version = _config.get(self.store_id, "version")
-        except _CONFIG_PARSER_ERRORS:
+        except _CONFIG_PARSER_ERRORS:  # pragma: no cover
             pass
 
     def merge(self, config: Dict[str, Any]) -> "ConfigParser":
@@ -196,3 +190,28 @@ class ConfigParser:  # pylint: disable=too-few-public-methods
             if value is not None:
                 setattr(self, item, value)
         return self
+
+    def get_store_directory(self, name: str) -> Optional[str]:
+        """Retrieve store directory path given by its name"""
+        if not self._files:
+            return None
+
+        _config = configparser.ConfigParser()
+        _config.read(self._files, encoding="utf-8")
+
+        if not _config.has_section(name):
+            raise ConfigIDError(
+                f"Impossible to get symbol store details from configuration ({name})"
+                + str(_config.sections())
+            )
+
+        if not _config.has_option(name, "store"):
+            raise ConfigDataError(
+                "Impossible to get symbol store directory from " f"configuration ({name})"
+            )
+
+        try:
+            store_dir = _config.get(name, "store")
+        except _CONFIG_PARSER_ERRORS:  # pragma: no cover
+            store_dir = None
+        return store_dir

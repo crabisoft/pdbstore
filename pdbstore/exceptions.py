@@ -153,14 +153,36 @@ class RenameFileError(PDBStoreException):
         PDBStoreException.__init__(self, f"failed to rename {src} into {dest}")
 
 
-class TransactionNotFoundError(PDBStoreException):
+class TransactionException(PDBStoreException):
+    """Transaction based exception object"""
+
+    def __init__(self, message: str) -> None:
+        PDBStoreException.__init__(self, message)
+
+
+class TransactionNotFoundError(TransactionException):
     """Specific transaction ID not found"""
 
-    def __init__(self, transaction_id: str) -> None:
-        PDBStoreException.__init__(
+    def __init__(self, transaction_id: Union[int, str]) -> None:
+        if isinstance(transaction_id, int):
+            transaction_id = f"{transaction_id:010}"
+        TransactionException.__init__(
             # pylint: disable=line-too-long
             self,
-            f"ID {transaction_id} doesn't exist or wasn't an add transaction transaction",
+            f"ID {transaction_id} doesn't exist",
+        )
+
+
+class ImproperTransactionTypeError(TransactionException):
+    """Specific transaction ID found but with improper type"""
+
+    def __init__(
+        self, transaction_id: Union[int, str], transaction_type: str, expected_type: str
+    ) -> None:
+        TransactionException.__init__(
+            # pylint: disable=line-too-long
+            self,
+            f"ID {transaction_id} exist but {transaction_type} detected and {expected_type} found",
         )
 
 
@@ -174,9 +196,7 @@ class UnexpectedError(PDBStoreException):
 class WriteFileError(PDBStoreException):
     """Unexpected error occurs when updating a file"""
 
-    def __init__(
-        self, pathname: Union[None, PathLike], msg: Optional[str] = None
-    ) -> None:
+    def __init__(self, pathname: Union[None, PathLike], msg: Optional[str] = None) -> None:
         if not msg:
             msg = f"failed to write data in {pathname}"
         PDBStoreException.__init__(self, msg)

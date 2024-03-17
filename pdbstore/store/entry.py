@@ -85,10 +85,21 @@ class TransactionEntry:
         """
         return self.compressed
 
-    def commit(self, force: Optional[bool] = False) -> bool:
-        """Commit transaction entry by storing the required filse into the symbol store
+    def commit(
+        self,
+        force: Optional[bool] = False,
+        store: Optional["Store"] = None,  # type: ignore[name-defined] # noqa F821
+    ) -> bool:
+        """Commit transaction entry by storing the required filse into the symbol store.
+
+        If ``store`` is `None`, this function will consider as a standard transaction entry,
+        else this function will promote the files referenced by this
+        :class:`TransactionEntry <TransactionEntry>` object  and stored them in ``store``
+        as a new entry.
 
         :param force: True to overwrite any existing file from the store, else False.
+        :param store: Optional :class:`Store <pdbstore.store.store.Store>` object.
+
         :return: True if the file is stored successfully, else False if the file was
                  alredy present.
         :raise:
@@ -104,6 +115,19 @@ class TransactionEntry:
         # Create any missing intermediate directories
         if not dest_dir.is_dir():
             dest_dir.mkdir(parents=True)
+
+        if store is not None:
+            # Promote files from another store
+            stored_path = store.rootdir / self.file_name / self.file_hash / self.rel_path.name
+            PDBStoreOutput().debug(
+                f"Promoting {self.stored_path} from {stored_path}",
+            )
+            try:
+                shutil.copy(stored_path, dest_dir)
+            except Exception as exc:  # pragma: no cover
+                raise exceptions.CopyFileError(stored_path, dest_dir) from exc
+
+            return True
 
         if self.compressed:
             # Sanity check to limit compression for file having size with less than 2GB
@@ -127,7 +151,7 @@ class TransactionEntry:
             )
             try:
                 shutil.copy(self.source_file, dest_dir)
-            except Exception as exc:
+            except Exception as exc:  # pragma: no cover
                 raise exceptions.CopyFileError(self.source_file, dest_dir) from exc
 
         return True
@@ -184,12 +208,8 @@ class TransactionEntry:
         :param source_file: Full path to the input source file
         :return: The new :class:`TransactionEntry` object
         """
-        compressed_path = (
-            store.rootdir / file_name / file_hash / (str(file_name)[:-1] + "_")
-        )
-        return TransactionEntry(
-            store, file_name, file_hash, source_file, compressed_path.is_file()
-        )
+        compressed_path = store.rootdir / file_name / file_hash / (str(file_name)[:-1] + "_")
+        return TransactionEntry(store, file_name, file_hash, source_file, compressed_path.is_file())
 
     @staticmethod
     def create(
@@ -214,9 +234,7 @@ class TransactionEntry:
             return None
 
         file_name = os.path.basename(os.fspath(file_path))
-        compressed_path = (
-            store.rootdir / file_name / file_hash / (str(file_name)[:-1] + "_")
-        )
+        compressed_path = store.rootdir / file_name / file_hash / (str(file_name)[:-1] + "_")
 
         new_entry = TransactionEntry(
             store,
@@ -237,6 +255,25 @@ class TransactionEntry:
         if file_path.is_file():
             try:
                 disk_usage = file_path.stat().st_size
-            except OSError:
+            except OSError:  # pragma: no cover
                 PDBStoreOutput().error(f"failed to get file size for {str(file_path)}")
         return disk_usage
+
+    def clone(
+        self,
+        store: Optional["Store"] = None,  # type: ignore[name-defined] # noqa: F821
+        promoted: Optional[bool] = False,
+    ) -> "TransactionEntry":
+        """Clone the transaction entry.
+
+        :param store: Optional :class:`Store <pdbstore.store.store.Store>` object to be
+                      associated to the cloned entry
+        :return: The cloned :class:`TransactionEntry` object
+        """
+        return TransactionEntry(
+            store,
+            self.file_name,
+            self.file_hash,
+            self.stored_path if promoted else self.source_file,
+            False if promoted else self.compressed,
+        )

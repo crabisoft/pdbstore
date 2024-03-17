@@ -53,9 +53,7 @@ def test_complete(capsys, tmp_store_dir, test_data_native_dir):
         + [exe_path],
     ):
         assert cli.cli.main() == SUCCESS
-        assert (
-            re.search(r"dummyapp.exe\s+Not found", capsys.readouterr().out) is not None
-        )
+        assert re.search(r"dummyapp.exe\s+Not found", capsys.readouterr().out) is not None
 
     # Test with direct call to main function when file not present yet
     assert cli.cli.main(["fetch"] + argv[0:2] + [exe_path]) == SUCCESS
@@ -159,10 +157,6 @@ def test_multiple_with_config(dynamic_config_file, test_data_native_dir, formatt
     assert cli.cli.main(["fetch", "-F"] + formatter + argv[0:4] + pe_list) == SUCCESS
 
     assert (
-        cli.cli.main(["fetch"] + formatter + argv[0:4] + pe_list + [nf_path])
-        == ERROR_ENCOUNTERED
+        cli.cli.main(["fetch"] + formatter + argv[0:4] + pe_list + [nf_path]) == ERROR_ENCOUNTERED
     )
-    assert (
-        cli.cli.main(["fetch"] + formatter + argv[0:4] + pe_list + [script_path])
-        == SUCCESS
-    )
+    assert cli.cli.main(["fetch"] + formatter + argv[0:4] + pe_list + [script_path]) == SUCCESS

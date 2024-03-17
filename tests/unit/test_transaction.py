@@ -15,18 +15,22 @@ def test_valid(tmp_store, monkeypatch):
     assert transaction.is_committed() is False
     assert transaction.is_delete_operation() is False
     assert transaction.is_deleted() is False
+    assert transaction.is_promoted() is False
 
     transaction = Transaction(tmp_store, "0000000001", TransactionType.ADD.value)
     assert transaction.id == "0000000001"
     assert transaction.is_committed() is True
     assert transaction.is_delete_operation() is False
     assert transaction.is_deleted() is False
+    assert transaction.is_promoted() is False
 
     with monkeypatch.context() as mpc:
         mpc.setattr(Path, "exists", lambda a: False)
         assert transaction.is_deleted() is False
+        assert transaction.is_promoted() is False
         mpc.setattr(Path, "exists", lambda a: True)
         assert transaction.is_deleted() is True
+        assert transaction.is_promoted() is True
 
     transaction = Transaction(tmp_store, "0000000001", TransactionType.DEL.value)
     assert transaction.id == "0000000001"
@@ -55,9 +59,7 @@ def test_register_entry(tmp_store, test_data_native_dir):
     with pytest.raises(exceptions.FileNotExistsError):
         assert transaction.register_entry("notfound-file", False) is False
     assert transaction.register_entry(None, False) is False
-    assert (
-        transaction.register_entry(test_data_native_dir / "dummyapp.pdb", False) is True
-    )
+    assert transaction.register_entry(test_data_native_dir / "dummyapp.pdb", False) is True
 
 
 def test_deleted(tmp_store, monkeypatch, capsys):
@@ -66,13 +68,23 @@ def test_deleted(tmp_store, monkeypatch, capsys):
     with monkeypatch.context() as mpc:
         mpc.setattr(Path, "is_file", lambda a: False)
         transaction.mark_deleted()
-        assert (
-            "file not found, so not possible to mark it as deleted"
-            in capsys.readouterr().err
-        )
+        assert "file not found, so not possible to mark it as deleted" in capsys.readouterr().err
         mpc.setattr(Path, "is_file", lambda a: True)
         with mock.patch("os.rename", return_value=True) as ren_mock:
             transaction.mark_deleted()
+            ren_mock.assert_called()
+
+
+def test_promoted(tmp_store, monkeypatch, capsys):
+    """test promoted tag"""
+    transaction = Transaction(tmp_store, "0000000001", TransactionType.ADD.value)
+    with monkeypatch.context() as mpc:
+        mpc.setattr(Path, "is_file", lambda a: False)
+        transaction.mark_promoted()
+        assert "file not found, so not possible to mark it as promoted" in capsys.readouterr().err
+        mpc.setattr(Path, "is_file", lambda a: True)
+        with mock.patch("shutil.copyfile", return_value=True) as ren_mock:
+            transaction.mark_promoted()
             ren_mock.assert_called()
 
 
@@ -85,14 +97,8 @@ def test_representation(tmp_store):
         "file",
         datetime.utcfromtimestamp(1699195604),
     )
-    assert (
-        str(transaction)
-        == '0000000001,add,file,11/05/2023,14:46:44,"None","None","None",'
-    )
-    assert (
-        repr(transaction)
-        == '0000000001,add,file,11/05/2023,14:46:44,"None","None","None",'
-    )
+    assert str(transaction) == '0000000001,add,file,11/05/2023,14:46:44,"None","None","None",'
+    assert repr(transaction) == '0000000001,add,file,11/05/2023,14:46:44,"None","None","None",'
 
     transaction = Transaction(
         tmp_store,
@@ -155,10 +161,7 @@ def test_parallel_commit(tmp_store, test_data_native_dir):
     assert files[1]["status"] == OpStatus.SUCCESS.value
     assert transaction.compute_disk_usage() > 0
     assert transaction.find_entry("", "") is None
-    assert (
-        transaction.find_entry("dummyapp.pdb", "DBF7CE25C6DC4E0EA9AD889187E296A21")
-        is not None
-    )
+    assert transaction.find_entry("dummyapp.pdb", "DBF7CE25C6DC4E0EA9AD889187E296A21") is not None
     assert transaction.find_entry("dummyapp.pdb", "") is None
 
 

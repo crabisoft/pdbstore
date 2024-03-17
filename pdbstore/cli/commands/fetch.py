@@ -57,13 +57,9 @@ def fetch_text_formatter(summary: Summary) -> None:
 
             if status == OpStatus.SUCCESS:
                 compressed = "Yes" if queryd.get("compressed", False) else "No"
-                cli_out_write(
-                    f"{str(file_path):<{input_len}s}{compressed:^10s} {symbol_path}"
-                )
+                cli_out_write(f"{str(file_path):<{input_len}s}{compressed:^10s} {symbol_path}")
             elif status == OpStatus.SKIPPED:
-                cli_out_write(
-                    f"{str(file_path):<{input_len}s}{'':^10s} {error_msg or 'Not found'}"
-                )
+                cli_out_write(f"{str(file_path):<{input_len}s}{'':^10s} {error_msg or 'Not found'}")
             else:
                 cli_out_write(
                     f"{str(file_path):<{input_len}s}{'':^10s} {error_msg or 'File not found'}"
@@ -81,9 +77,7 @@ def fetch_json_formatter(summary: Summary) -> None:
     while head:
         dct = {
             "id": head.transaction_id,
-            "type": head.transaction_type.value
-            if head.transaction_type
-            else "undefined",
+            "type": head.transaction_type.value if head.transaction_type else "undefined",
             "status": head.status.value,
             "success": head.success(False),
             "failure": head.failed(True),
@@ -178,9 +172,7 @@ def fetch(parser: PDBStoreArgumentParser, *args: Any) -> Any:
 
     for file_path in input_files:
         try:
-            entry: Optional[Tuple[Transaction, TransactionEntry]] = store.fetch_symbol(
-                file_path
-            )
+            entry: Optional[Tuple[Transaction, TransactionEntry]] = store.fetch_symbol(file_path)
             if not entry:
                 summary.add_file(file_path, OpStatus.SKIPPED, "Not found")
                 continue
@@ -198,19 +190,13 @@ def fetch(parser: PDBStoreArgumentParser, *args: Any) -> Any:
                     f"Failed to extract from transaction {entry[0].transaction_id}",
                 )
         except InvalidPEFile:
-            summary.add_file(
-                util.path_to_str(file_path), OpStatus.SKIPPED, "Not a valid pe file"
-            )
+            summary.add_file(util.path_to_str(file_path), OpStatus.SKIPPED, "Not a valid pe file")
         except FileNotExistsError:
-            summary.add_file(
-                util.path_to_str(file_path), OpStatus.FAILED, "File not found"
-            )
+            summary.add_file(util.path_to_str(file_path), OpStatus.FAILED, "File not found")
         except PDBStoreException as exp:  # pragma: no cover
-            summary.add_file(
-                util.path_to_str(file_path), OpStatus.FAILED, "ex:" + str(exp)
-            )
+            summary.add_file(util.path_to_str(file_path), OpStatus.FAILED, "ex:" + str(exp))
         except Exception as exc:  # pylint: disable=broad-except # pragma: no cover
             summary.add_file(util.path_to_str(file_path), OpStatus.FAILED, str(exc))
             output.error(exc)
-            output.error("unexpected error when querying information for {file_path}")
+            output.error(f"unexpected error when fetching information for {file_path}")
     return summary

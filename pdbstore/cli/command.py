@@ -84,6 +84,11 @@ class PDBStoreArgumentParser(argparse.ArgumentParser):
             if value is not None:
                 args_dict[key] = value
 
+        if "input_store_id" in args_dict:
+            input_store_name = args_dict.get("input_store_id")
+            if input_store_name:
+                args_dict["input_store_dir"] = config.get_store_directory(input_store_name)
+
         return argparse.Namespace(**args_dict)
 
 
@@ -94,9 +99,7 @@ CommandCallback = Callable[[PDBStoreArgumentParser, Any], Any]
 :return: Depend on each command.
 """
 
-SubCommandCallback = Callable[
-    [PDBStoreArgumentParser, argparse.ArgumentParser, Any], Any
-]
+SubCommandCallback = Callable[[PDBStoreArgumentParser, argparse.ArgumentParser, Any], Any]
 """Sub-command callback function.
 :param PDBStoreArgumentParser: Current parser object
 :param argparse.ArgumentParser: The command sub-parser object
@@ -128,8 +131,7 @@ class BaseCommand:
                     self.formatters[kind] = action
                 else:
                     raise PDBStoreException(
-                        f"Invalid formatter for {kind}. The formatter must be"
-                        "a valid function"
+                        f"Invalid formatter for {kind}. The formatter must be" "a valid function"
                     )
         if callback.__doc__:
             self.callback_doc = callback.__doc__
@@ -168,7 +170,7 @@ class BaseCommand:
         )
 
     @staticmethod
-    def init_config(parser: argparse.ArgumentParser) -> None:
+    def init_config(parser: argparse.ArgumentParser, single: bool = True) -> None:
         """Add configuration file command-line option"""
         parser.add_argument(
             "-C",
@@ -195,6 +197,18 @@ class BaseCommand:
             required=False,
             action=OnceArgument,
         )
+
+        if not single:
+            parser.add_argument(
+                "-I",
+                "--input-store",
+                metavar="NAME",
+                dest="input_store_id",
+                type=str,
+                help=("Which configuration section should be used as input store. "),
+                required=False,
+                action=OnceArgument,
+            )
 
     @property
     def _help_formatters(self) -> List[str]:
@@ -231,9 +245,7 @@ class BaseCommand:
         """Get action help message"""
         return self.callback_doc
 
-    def _format(
-        self, parser: argparse.ArgumentParser, info: Dict[str, Any], *args: Any
-    ) -> None:
+    def _format(self, parser: argparse.ArgumentParser, info: Dict[str, Any], *args: Any) -> None:
         parser_args, _ = parser.parse_known_args(*args)
 
         default_format = "text"
@@ -358,9 +370,7 @@ def pdbstore_command(
     name: Optional[str] = None,
 ) -> Callable[[CommandCallback], PDBStoreCommand]:
     """Register a PDBStore command"""
-    return lambda f: PDBStoreCommand(
-        f, group, formatters=formatters, callback_name=name
-    )
+    return lambda f: PDBStoreCommand(f, group, formatters=formatters, callback_name=name)
 
 
 def pdbstore_subcommand(

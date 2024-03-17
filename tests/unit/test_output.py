@@ -188,9 +188,7 @@ def test_write_message(_is_terminal, capsys):
     assert capsys.readouterr().err == "scope: my message\n"
     assert capsys.readouterr().out == ""
 
-    out._write_message(
-        {"key1": "value1", "key2": "value2"}, output.Color.RED, output.Color.RED
-    )
+    out._write_message({"key1": "value1", "key2": "value2"}, output.Color.RED, output.Color.RED)
     assert capsys.readouterr().err == "scope: => key1: value1, key2: value2\n"
     assert capsys.readouterr().out == ""
 
@@ -208,9 +206,7 @@ def test_write_message(_is_terminal, capsys):
     )
     assert capsys.readouterr().out == ""
 
-    out._write_message(
-        {"key1": "value1", "key2": "value2"}, output.Color.RED, output.Color.RED
-    )
+    out._write_message({"key1": "value1", "key2": "value2"}, output.Color.RED, output.Color.RED)
     assert (
         capsys.readouterr().err
         == "\x1b[31m\x1b[31mscope:\x1b[0m \x1b[31m\x1b[31m=> key1: value1, key2: value2\x1b[0m\n"
@@ -346,16 +342,12 @@ def test_title(_is_terminal, params, capsys):
     _is_terminal.return_value = True
     output.PDBStoreOutput().title("TITLE")
     out, err = capsys.readouterr()
-    assert err == (
-        "\x1b[1m\x1b[35m\n======== TITLE ========\x1b[0m\n" if params[1] else ""
-    )
+    assert err == ("\x1b[1m\x1b[35m\n======== TITLE ========\x1b[0m\n" if params[1] else "")
     assert out == ""
 
     output.PDBStoreOutput().subtitle("SUBTITLE")
     out, err = capsys.readouterr()
-    assert err == (
-        "\x1b[1m\x1b[35m\n-------- SUBTITLE --------\x1b[0m\n" if params[1] else ""
-    )
+    assert err == ("\x1b[1m\x1b[35m\n-------- SUBTITLE --------\x1b[0m\n" if params[1] else "")
     assert out == ""
     output.PDBStoreOutput.define_log_level("status")
 

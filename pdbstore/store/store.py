@@ -29,8 +29,6 @@ class Store:
     def admin_dir(self) -> Path:
         """Retrieve the full path name of 000Admin directory"""
         admin_dir_path = self.rootdir / const.ADMIN_DIRNAME
-        if not admin_dir_path.is_dir():
-            admin_dir_path.mkdir(parents=True)
         return admin_dir_path
 
     @property
@@ -88,7 +86,7 @@ class Store:
         product: str,
         version: str,
         comment: Optional[str] = None,
-        transaction_type: str = "add",
+        transaction_type: TransactionType = TransactionType.ADD,
     ) -> Transaction:
         """Create a new transaction.
 
@@ -107,6 +105,34 @@ class Store:
             comment=comment,
         )
 
+    def find_transaction(
+        self, transaction_id: int, transaction_type: Optional[TransactionType] = None
+    ) -> Transaction:
+        """Find an existing transaction given by its id
+
+        :param transaction_id: The transaction id.
+        :param transaction_type: Optional transaction type. It can be ``add``,  ``del`` or ``None``.
+        :return: A :class:`Transaction <pdbstore.store.transaction.Transaction>` object
+                          if `transaction_id` exists, else None
+        :raise:
+            :TransactionNotFoundError: The specified transition cannot be found.
+            :ImproperTransactionTypeError: The specified transition exists but with
+                                           a different transaction type.
+            :WriteFileError: An error occurs when updating global file.
+        """
+        trans_id = f"{transaction_id:010d}"
+        PDBStoreOutput().debug("Finding ID ... {trans_id}")
+        transaction = self.transactions.find(trans_id)
+        if not transaction:
+            raise exceptions.TransactionNotFoundError(transaction_id)
+        if transaction_type and transaction_type.value != transaction.transaction_type.value:
+            raise exceptions.ImproperTransactionTypeError(
+                transaction_id,
+                transaction.transaction_type.value,
+                transaction_type.value,
+            )
+        return transaction
+
     def delete_transaction(self, transaction_id: int, dry_run: bool = False) -> Summary:
         """Delete an existing transaction given by its id
 
@@ -116,14 +142,12 @@ class Store:
         :return: A :class:`Summary <pdbstore.store.summary.Summary>` object
         :raise:
             :TransactionNotFoundError: The specified transition cannot be found.
+            :ImproperTransactionTypeError: The specified transition exists but with
+                a different transaction type.
             :WriteFileError: An error occurs when updating global file.
         """
         # Retrieve the Transition object assocaited the specified id
-        trans_id = f"{transaction_id:010d}"
-        PDBStoreOutput().debug("Finding ID ... {trans_id}")
-        transaction = self.transactions.find(trans_id)
-        if transaction is None:
-            raise exceptions.TransactionNotFoundError(trans_id)
+        transaction: Transaction = self.find_transaction(transaction_id, TransactionType.ADD)
 
         # Remove the transition from the history file
         summary = self.transactions.delete(transaction, dry_run)
@@ -139,12 +163,22 @@ class Store:
         return summary
 
     def commit(
-        self, transaction: Transaction, force: Optional[bool] = False
+        self,
+        transaction: Transaction,
+        force: Optional[bool] = False,
+        store: Optional["Store"] = None,
     ) -> Summary:
         """Commit a transaction on the disk.
 
+        If ``store`` is `None`, this function will consider as a standard transaction,
+        else this function will promote the files referenced by ``transaction``
+        :class:`Transaction <pdbstore.store.transaction.Transaction>` object and stored
+        in ``store`` as a new transaction from this
+        :class:`Store <pdbstore.store.store.Store>` object.
+
         :param transaction: The transaction to be committed.
         :param force: True to overwrite any existing file from the store, else False.
+        :param store: Optional :class:`Store <pdbstore.store.store.Store>` object
         :return: A :class:`Summary <pdbstore.store.summary.Summary>` object
         :raise:
             :UnexpectedError: Failed to create missing directories or update
@@ -159,14 +193,12 @@ class Store:
             if not self.admin_dir.is_dir():
                 self.admin_dir.mkdir(parents=True)
         except Exception as exc:
-            raise exceptions.UnexpectedError(
-                "failed to create symbol store directories"
-            ) from exc
+            raise exceptions.UnexpectedError("failed to create symbol store directories") from exc
 
         # Commit the transaction on the disk
         now = round(time.time())
         summary = transaction.commit(
-            self.next_transaction_id, datetime.fromtimestamp(now), force
+            self.next_transaction_id, datetime.fromtimestamp(now), force, store
         )
         if summary.status == OpStatus.SUCCESS:
             # Add the transaction into the server file
@@ -178,9 +210,7 @@ class Store:
 
         return summary
 
-    def fetch_symbol(
-        self, file_path: PathLike
-    ) -> Optional[Tuple[Transaction, TransactionEntry]]:
+    def fetch_symbol(self, file_path: PathLike) -> Optional[Tuple[Transaction, TransactionEntry]]:
         """Fetch pdb file given an executable file.
 
         This function will first try to fetch debugging information from `file_path`
@@ -234,9 +264,7 @@ class Store:
         # Create transaction entry object for the specified file
         file_entry = TransactionEntry.create(self, file_path)
         if not file_entry:
-            PDBStoreOutput().debug(
-                f"failed to create transaction entry from {file_path} file"
-            )
+            PDBStoreOutput().debug(f"failed to create transaction entry from {file_path} file")
             return entries_list
 
         # Build the list of associated TransactionEntry object associated to
@@ -323,9 +351,7 @@ class Store:
             try:
                 trans_summary = self.delete_transaction(int(transaction.id), dry_run)
             except exceptions.TransactionNotFoundError:
-                PDBStoreOutput().warning(
-                    f"no transaction with id '{transaction.id}' found"
-                )
+                PDBStoreOutput().warning(f"no transaction with id '{transaction.id}' found")
                 trans_summary = Summary(
                     transaction.id,
                     OpStatus.FAILED,
@@ -353,3 +379,51 @@ class Store:
             if not filter_cb or filter_cb(transaction):
                 for entry in transaction.entries:
                     yield (transaction, entry)
+
+    def promote_transaction(
+        self, transaction: Transaction, comment: Optional[str] = None
+    ) -> Summary:
+        """Copy an existing transaction from another store.
+
+        This function will clone the ``transaction`` object,
+        :param transaction: The :class:`Transaction <pdbstore.store.transaction.Transaction>`
+        object to be copied.
+        :return: The new :class:`Transaction <pdbstore.store.transaction.Transaction>` object
+        from the store
+        """
+
+        if not transaction:
+            return Summary(None, OpStatus.FAILED, None, "Invalid transaction object")
+        if transaction.transaction_type != TransactionType.ADD:
+            return Summary(None, OpStatus.FAILED, None, "Invalid transaction type")
+
+        if not comment:
+            comment = f"{transaction.comment} : " if transaction.comment else ""
+            comment += f"Promote {transaction.transaction_id} from {transaction.store.rootdir}"
+
+        PDBStoreOutput().info(
+            f"Promoting {transaction.transaction_id} from {transaction.store.rootdir} ..."
+        )
+
+        new_transaction = self.new_transaction(
+            transaction.product or "", transaction.version or "", comment
+        )
+
+        for entry in transaction.entries:
+            new_transaction.add_entry(entry.clone(self, True))
+
+        summary = self.commit(new_transaction, True, transaction.store)
+        if summary.status == OpStatus.SUCCESS:
+            transaction.mark_promoted()
+        return summary
+
+    def check_admin_dir(self) -> None:
+        """Check that all required directories exists"""
+        if not self.admin_dir.is_dir():
+            self.admin_dir.mkdir(parents=True)
+
+    def reset(self) -> None:
+        """Reset to an empty store from memory only."""
+        self.transactions.reset()
+        self.history.reset()
+        self._next_transaction_id = None

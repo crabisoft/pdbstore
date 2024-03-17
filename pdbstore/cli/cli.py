@@ -128,9 +128,7 @@ class Cli:
                         continue
                     data.append(line)
 
-                txt = textwrap.fill(
-                    " ".join(data), 80, subsequent_indent=" " * (max_len + 2)
-                )
+                txt = textwrap.fill(" ".join(data), 80, subsequent_indent=" " * (max_len + 2))
                 cli_out_write(txt)
 
         cli_out_write("")
@@ -146,9 +144,7 @@ class Cli:
             command_argument = args[0][0]
         except IndexError:  # No parameters
             self._output_help_cli()
-            raise PDBInvalidCommandNameException(  # pylint: disable=raise-missing-from
-                None
-            )
+            raise PDBInvalidCommandNameException(None)  # pylint: disable=raise-missing-from
 
         try:
             command = self._commands[command_argument]
@@ -165,8 +161,7 @@ class Cli:
                 raise PDBAbortExecution(0)  # pylint: disable=raise-missing-from
 
             output.info(
-                f"'{command_argument}' is not a PDBStore command. "
-                "See 'pdbstore --help'."
+                f"'{command_argument}' is not a PDBStore command. " "See 'pdbstore --help'."
             )
             output.info("")
             self._print_similar(command_argument)

@@ -16,9 +16,7 @@ LEVEL_NOTICE = 50  # Important messages to attract user attention.
 LEVEL_STATUS = 40  # Default - The main interesting messages.
 LEVEL_VERBOSE = 30  # -V  Detailed informational messages.
 LEVEL_DEBUG = 20  # -VV Closely related to internal implementation details
-LEVEL_TRACE = (
-    10  # -VVV Fine-grained messages with very low-level implementation details
-)
+LEVEL_TRACE = 10  # -VVV Fine-grained messages with very low-level implementation details
 
 
 class Color:  # pylint: disable=too-few-public-methods
@@ -303,9 +301,7 @@ class PDBStoreOutput:
         """
         if self._pdbstore_output_level <= LEVEL_ERROR:
             if isinstance(msg, BaseException):  # pragma: no cover
-                lines = traceback.format_exception(
-                    type(msg), value=msg, tb=msg.__traceback__
-                )
+                lines = traceback.format_exception(type(msg), value=msg, tb=msg.__traceback__)
                 exc_msg = ("\n".join(lines)).replace("\n", "\n       ")
                 self._write_message(f"ERROR: {exc_msg}", Color.RED)
             else:

@@ -61,27 +61,19 @@ def delete(parser: PDBStoreArgumentParser, *args: Any) -> Any:
     summary: Summary
     summary_head: Optional[Summary] = None
 
-    for trans_id in (
-        transaction_id if isinstance(transaction_id, list) else [transaction_id]
-    ):
+    for trans_id in transaction_id if isinstance(transaction_id, list) else [transaction_id]:
         try:
             summary_del: Summary = store.delete_transaction(trans_id)
         except PDBStoreException as exp:
             output.error(str(exp))
-            summary_del = Summary(
-                trans_id, OpStatus.FAILED, TransactionType.DEL, str(exp)
-            )
-        except BaseException as exg:  # pylint: disable=broad-exception-caught
-            summary_del = Summary(
-                trans_id, OpStatus.FAILED, TransactionType.DEL, str(exg)
-            )
+            summary_del = Summary(trans_id, OpStatus.FAILED, TransactionType.DEL, str(exp))
+        except BaseException as exg:  # pylint: disable=broad-exception-caught # pragma: no cover
+            summary_del = Summary(trans_id, OpStatus.FAILED, TransactionType.DEL, str(exg))
             output.error(
                 f"unexpected error when deleting {trans_id} transaction",
             )
         if summary_head:
-            summary.linked = (  # noqa: F821 # pylint: disable=used-before-assignment
-                summary_del
-            )
+            summary.linked = summary_del  # noqa: F821 # pylint: disable=used-before-assignment
         else:
             summary_head = summary_del
         summary = summary_del
