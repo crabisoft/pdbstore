@@ -124,7 +124,7 @@ class TransactionEntry:
             )
             try:
                 shutil.copy(stored_path, dest_dir)
-            except Exception as exc:
+            except Exception as exc:  # pragma: no cover
                 raise exceptions.CopyFileError(stored_path, dest_dir) from exc
 
             return True
@@ -151,7 +151,7 @@ class TransactionEntry:
             )
             try:
                 shutil.copy(self.source_file, dest_dir)
-            except Exception as exc:
+            except Exception as exc:  # pragma: no cover
                 raise exceptions.CopyFileError(self.source_file, dest_dir) from exc
 
         return True
@@ -255,7 +255,7 @@ class TransactionEntry:
         if file_path.is_file():
             try:
                 disk_usage = file_path.stat().st_size
-            except OSError:
+            except OSError:  # pragma: no cover
                 PDBStoreOutput().error(f"failed to get file size for {str(file_path)}")
         return disk_usage
 

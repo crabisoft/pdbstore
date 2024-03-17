@@ -74,10 +74,9 @@ Commit Message Header
    │       │
    │       └─⫸ Commit Scope: cli|io|report|store|packaging|changelog
    │
-   └─⫸ Commit Type: build|ci|chore|doc|feat|fix|perf|refactor|test
+   └─⫸ Commit Type: ci|chore|docs|feat|fix|perf|refactor|style|test
 
 The `<type>` and `<summary>` fields are mandatory, the `(<scope>)` field is optional.
-
 
 Type
 """"
@@ -91,6 +90,7 @@ Must be one of the following:
 * **fix**: A bug fix
 * **perf**: A code change that improves performance
 * **refactor**: A code change that neither fixes a bug nor adds a feature
+* **style**: Code modification which does add a new feature nor fix a bug
 * **test**: Adding missing tests or correcting existing tests
 
 
