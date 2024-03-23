@@ -82,7 +82,7 @@ def promote(parser: PDBStoreArgumentParser, *args: Any) -> Any:
     store_in = Store(input_store_dir)
     store_out = Store(output_store_dir)
 
-    summary: Summary
+    summary: Optional[Summary] = None
     summary_head: Optional[Summary] = None
 
     for trans_id in transaction_id if isinstance(transaction_id, list) else [transaction_id]:
@@ -96,10 +96,10 @@ def promote(parser: PDBStoreArgumentParser, *args: Any) -> Any:
             output.error(f"unexpected error when promoting {trans_id}")
             output.error(exc)
 
-        if summary_head:
-            summary.linked = summary_trans  # noqa: F821 # pylint: disable=used-before-assignment
+        if summary:
+            summary.linked = summary_trans
         else:
             summary_head = summary_trans
         summary = summary_trans
 
-    return summary
+    return summary_head

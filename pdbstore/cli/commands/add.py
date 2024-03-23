@@ -23,10 +23,11 @@ from pdbstore.typing import Any, Optional
 
 def add_text_formatter(summary: Summary) -> None:
     """Print output text for add command as simple text"""
+    nb_deleted = summary.linked.count(True) if summary.linked else 0
     cli_out_write(f"Number of files stored = {summary.success(False)}")
     cli_out_write(f"Number of errors = {summary.failed(False)}")
     cli_out_write(f"Number of files ignored = {summary.skipped(False)}")
-    cli_out_write(f"Number of transactions deleted = {summary.count(True)-1}")
+    cli_out_write(f"Number of transactions deleted = {nb_deleted}")
 
     if summary.failed(True):
         raise PDBAbortExecution(summary.failed(True))
@@ -73,6 +74,7 @@ def add(parser: PDBStoreArgumentParser, *args: Any) -> Any:
         "--force",
         dest="force",
         action="store_true",
+        default=False,
         help="""Overwrite any existing file from the store. uses file's hash
         to check if it's already exists in the store. Defaults to False.""",
     )
@@ -119,7 +121,7 @@ def add(parser: PDBStoreArgumentParser, *args: Any) -> Any:
     if not input_files:
         raise CommandLineError("no file or directory given")
 
-    compress: bool = opts.compress or False
+    compress: bool = opts.compress
     if compress and not pdbstore.io.is_compression_supported():
         raise CompressionNotSupportedError()
     store = Store(store_dir)
@@ -154,14 +156,16 @@ def add(parser: PDBStoreArgumentParser, *args: Any) -> Any:
     if success > 0:
         # Commit modifications to the disk
         try:
-            summary = store.commit(new_transaction, opts.force or False)
+            summary = store.commit(new_transaction, opts.force)
         except PDBStoreException as exc:
             output.error(exc)
             return Summary(new_transaction.id, OpStatus.FAILED, TransactionType.ADD)
-        except Exception:  # pylint: disable=broad-except
+        except Exception as exc2:  # pylint: disable=broad-except
+            print(exc2)
             output.error(
                 "unexpected error when filling Transaction object",
             )
+            return Summary(new_transaction.id, OpStatus.FAILED, TransactionType.ADD)
     else:
         summary = Summary(None, OpStatus.SKIPPED, TransactionType.ADD)
 

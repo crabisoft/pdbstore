@@ -177,7 +177,9 @@ class Store:
         :class:`Store <pdbstore.store.store.Store>` object.
 
         :param transaction: The transaction to be committed.
-        :param force: True to overwrite any existing file from the store, else False.
+        :param force: If **True** and a file is already present in the store, the existing
+            file will be overwritten and the file will be associated to ``transaction``, else
+            this function will only make the associated between the file and ``transaction``.
         :param store: Optional :class:`Store <pdbstore.store.store.Store>` object
         :return: A :class:`Summary <pdbstore.store.summary.Summary>` object
         :raise:
