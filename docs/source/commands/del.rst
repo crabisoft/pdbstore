@@ -6,9 +6,8 @@ pdbstore del
 .. code-block:: text
 
     $ pdbstore del -h
-    usage: pdbstore del [-s DIRECTORY] [-V [LEVEL]] [-L PATH] [-C PATH] [-S NAME]
-                        [-f NAME] [-h]
-                        [ID ...]
+    usage: pdbstore del [-s DIRECTORY] [--dry-run] [-V [LEVEL]] [-L PATH] [-C PATH] 
+                        [-S NAME] [-f NAME] [-h] [ID ...]
 
     Delete files from local symbol store
 
@@ -19,6 +18,8 @@ pdbstore del
       -s DIRECTORY, --store-dir DIRECTORY
                             Local root directory for the symbol store. [env var:        
                             PDBSTORE_STORAGE_DIR]
+      --dry-run             Do not delete file or directory, but show a list of paths 
+                            to be removed.
       -V [LEVEL], --verbosity [LEVEL]
                             Level of detail of the output. Valid options from less      
                             verbose to more verbose: -Vquiet, -Verror, -Vwarning,       
@@ -36,8 +37,12 @@ pdbstore del
       -h, --help            show this help message and exit
 
 
-The ``pdbstore del`` will search for the speciifed transaction identifiers and delete
-them from the specified if exists.
+The ``pdbstore del`` will search for the specified transaction identifiers and delete
+all required associated files. A file will be automatically deleted if it is not referenced
+anymore by the store.
+
+The ``--dry-run`` option can be used to obtain a summary of files to be deleted along
+the specified transaction.
 
 The ``pdbstore del`` will perform the requested delete operation with using transaction
 identifier as unique criteria. If you want to delete transactions given more criteria,
