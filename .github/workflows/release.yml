@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       force_arg: ${{ steps.init.outputs.force_arg }}
+    environment: pypi.org
     steps:
       - id: init
         name: Analyze input arguments
