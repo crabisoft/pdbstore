@@ -1,58 +1,23 @@
 store package
 =============
 
-store module
-------------
+.. toctree::
+   :caption: store package
+   :maxdepth: 1
+   :hidden:
 
-.. automodule:: pdbstore.store.store
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   store/store
+   store/history
+   store/transactions
+   store/transaction
+   store/transaction_type
+   store/entry
+   store/summary
 
-history module
---------------
-
-.. automodule:: pdbstore.store.history
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-transactions module
--------------------
-
-.. automodule:: pdbstore.store.transactions
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-transaction module
-------------------
-
-.. automodule:: pdbstore.store.transaction
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-transction type module
-----------------------
-
-.. automodule:: pdbstore.store.transaction_type
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-entry module
-------------
-
-.. automodule:: pdbstore.store.entry
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-summary module
---------------
-
-.. automodule:: pdbstore.store.summary
-    :members:
-    :undoc-members:
-    :show-inheritance:
+- :doc:`store module <store/store>`
+- :doc:`history module <store/history>`
+- :doc:`transactions module <store/transactions>`
+- :doc:`transaction module <store/transaction>`
+- :doc:`transaction_type module <store/transaction_type>`
+- :doc:`entry module <store/entry>`
+- :doc:`summary module <store/summary>`
