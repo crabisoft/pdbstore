@@ -6,7 +6,7 @@ pdbstore unused
 .. code-block:: text
 
     $ pdbstore unused -h
-    usage: pdbstore unused [-s DIRECTORY] [-C PATH] [-S NAME] [-L PATH] 
+    usage: pdbstore unused [-s DIRECTORY] [-d] [-C PATH] [-S NAME] [-L PATH] 
                            [-V [LEVEL]] [-f NAME] [-h] [DATE]
 
     Find all files not used since a specific date
@@ -18,6 +18,7 @@ pdbstore unused
       -s DIRECTORY, --store-dir DIRECTORY
                             Local root directory for the symbol store. [env var:        
                             PDBSTORE_STORAGE_DIR]
+      -d --delete           Delete automatically all unused files
       -C PATH, --config-file PATH
                             Configuration file to use. Can be used multiple times.      
                             [env var: PDBSTORE_CFG]

@@ -11,7 +11,7 @@ from pdbstore.store.summary import OpStatus, Summary
 from pdbstore.store.transaction import Transaction
 from pdbstore.store.transaction_type import TransactionType
 from pdbstore.store.transactions import Transactions
-from pdbstore.typing import Callable, Generator, List, Optional, PathLike, Tuple
+from pdbstore.typing import Callable, Generator, List, Optional, PathLike, Tuple, Union
 
 __all__ = ["Store"]
 
@@ -106,7 +106,7 @@ class Store:
         )
 
     def find_transaction(
-        self, transaction_id: int, transaction_type: Optional[TransactionType] = None
+        self, transaction_id: Union[str, int], transaction_type: Optional[TransactionType] = None
     ) -> Transaction:
         """Find an existing transaction given by its id
 
@@ -120,8 +120,8 @@ class Store:
                                            a different transaction type.
             :WriteFileError: An error occurs when updating global file.
         """
-        trans_id = f"{transaction_id:010d}"
-        PDBStoreOutput().debug("Finding ID ... {trans_id}")
+        trans_id = f"{int(transaction_id):010d}"
+        PDBStoreOutput().debug(f"Finding ID ... {trans_id}")
         transaction = self.transactions.find(trans_id)
         if not transaction:
             raise exceptions.TransactionNotFoundError(transaction_id)
@@ -133,7 +133,7 @@ class Store:
             )
         return transaction
 
-    def delete_transaction(self, transaction_id: int, dry_run: bool = False) -> Summary:
+    def delete_transaction(self, transaction_id: Union[str, int], dry_run: bool = False) -> Summary:
         """Delete an existing transaction given by its id
 
         :param transaction_id: The transaction id to be deleted.
@@ -171,8 +171,8 @@ class Store:
         """Commit a transaction on the disk.
 
         If ``store`` is `None`, this function will consider as a standard transaction,
-        else this function will promote the files referenced by ``transaction``
-        :class:`Transaction <pdbstore.store.transaction.Transaction>` object and stored
+        else this function will promote the files referenced by
+        :class:`transaction <pdbstore.store.transaction.Transaction>` object and stored
         in ``store`` as a new transaction from this
         :class:`Store <pdbstore.store.store.Store>` object.
 

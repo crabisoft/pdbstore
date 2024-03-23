@@ -239,8 +239,9 @@ class Transaction:
         """Save the transaction on the disk.
 
         If ``store`` is `None`, this function will consider as a standard transaction,
-        else this function will promote the files referenced by this :class:`Transaction` object
-        and stored in ``store`` as a new transaction from its associated
+        else this function will promote the files referenced by
+        :class:`this transaction object<Transaction>` object and stored in ``store``
+        as a new transaction from its associated
         :class:`Store <pdbstore.store.store.Store>` object.
 
         :param transaction_id: The transaction ID
