@@ -38,6 +38,13 @@ def delete(parser: PDBStoreArgumentParser, *args: Any) -> Any:
         help="Transaction ID string.",
     )
 
+    parser.add_argument(
+        "--dry-run",
+        dest="dry_run",
+        action="store_true",
+        help="""Do not delete file or directory, but show a list of paths to be removed.""",
+    )
+
     add_storage_arguments(parser)
     add_global_arguments(parser)
 
@@ -63,7 +70,7 @@ def delete(parser: PDBStoreArgumentParser, *args: Any) -> Any:
 
     for trans_id in transaction_id if isinstance(transaction_id, list) else [transaction_id]:
         try:
-            summary_del: Summary = store.delete_transaction(trans_id)
+            summary_del: Summary = store.delete_transaction(trans_id, opts.dry_run)
         except PDBStoreException as exp:
             output.error(str(exp))
             summary_del = Summary(trans_id, OpStatus.FAILED, TransactionType.DEL, str(exp))

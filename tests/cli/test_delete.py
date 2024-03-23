@@ -77,6 +77,38 @@ def test_complete(capsys, tmp_store_dir, test_data_native_dir):
     assert len(store.Store(tmp_store_dir).history) == 4
 
 
+def test_complete_with_dry_run(tmp_store_dir, test_data_native_dir):
+    """test complete command-line with --dry-run option"""
+
+    argv = [
+        "--store-dir",
+        str(tmp_store_dir),
+        "--product-name",
+        "myproduct",
+        "--product-version",
+        "1.0.0",
+        str(test_data_native_dir / "dummyapp.pdb"),
+    ]
+
+    # New file into the store and twice to have 2 records
+    assert cli.cli.main(["add"] + argv) == 0
+    assert len(store.Store(tmp_store_dir).history) == ERROR_GENERAL
+    assert cli.cli.main(["add"] + argv) == 0
+    assert len(store.Store(tmp_store_dir).history) == 2
+
+    # Test through direct command-line
+    with mock.patch(
+        "sys.argv",
+        ["pdbstore", "del", "1", "--dry-run"] + argv[0:2],
+    ):
+        assert cli.cli.main() == SUCCESS
+        assert len(store.Store(tmp_store_dir).history) == 2
+
+    # Test with direct call to main function
+    assert cli.cli.main(["del", "2", "--dry-run"] + argv[0:2]) == SUCCESS
+    assert len(store.Store(tmp_store_dir).history) == 2
+
+
 def test_complete_with_config(dynamic_config_file, test_data_native_dir):
     """test complete command-line with configuration file usage"""
     argv = [
