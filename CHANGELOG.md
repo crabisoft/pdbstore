@@ -1,5 +1,21 @@
 # CHANGELOG
 
+## v0.3.0 (2024-03-23)
+
+### Feature
+
+* feat(command): add --dry-run option for del command (#18) ([`99f038a`](https://github.com/crabisoft/pdbstore/commit/99f038a7c404182d8b44d2b33b3971ecdbdc3e09))
+
+* feat(command): add --delete option for unused command (#17) ([`c83851f`](https://github.com/crabisoft/pdbstore/commit/c83851fbe3335343757b445f96552773722c30f6))
+
+### Fix
+
+* fix(transaction): no transaction created if file already exists from … (#19) ([`1754d19`](https://github.com/crabisoft/pdbstore/commit/1754d19153c99006d5d1b61cf55679f319c0934d))
+
+### Unknown
+
+* doc: refactor documentation (#20) ([`c600537`](https://github.com/crabisoft/pdbstore/commit/c600537d6c9b348ecf0004d11a0920cb94979d7d))
+
 ## v0.2.0 (2024-03-17)
 
 ### Chore
