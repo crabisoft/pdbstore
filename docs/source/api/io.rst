@@ -2,26 +2,15 @@ io package
 ==========
 
 
-file module
------------
+.. toctree::
+   :caption: io package
+   :maxdepth: 1
+   :hidden:
 
-.. automodule:: pdbstore.io.file
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   io/file
+   io/pdbfile
+   io/functions
 
-pdbfile module
---------------
-
-.. automodule:: pdbstore.io.pdbfile
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-io module
----------
-
-.. automodule:: pdbstore.io
-    :members:
-    :undoc-members:
-    :show-inheritance:
+- :doc:`file module <io/file>`
+- :doc:`pdbfile module <io/pdbfile>`
+- :doc:`functions <io/functions>`
