@@ -64,6 +64,14 @@ class Transactions:
         self.store: "Store" = store  # type: ignore[name-defined] # noqa: F821
         self._transactions: Dict[str, Transaction] = {}
 
+    @property
+    def count(self) -> int:
+        """Retrieve the total number of transactions
+
+        :return: The total number of registered transactions
+        """
+        return len(self._transactions)
+
     def _server_file_exists(self) -> bool:
         """Determine whether the server file exists or not
 

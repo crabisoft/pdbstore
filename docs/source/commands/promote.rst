@@ -52,6 +52,6 @@ The command will do not perform any file type check since the input files are fe
 from an existing symbol store.
 
 By default, ``pdbstore promote`` command will generate a default comment for the transaction
-by using comment from specified transaction and appending `\ : Promote from <Input Symbol Store Path>`.
+by using initial transaction comment and by appending `\ : Promote from <Input Symbol Store Path>`.
 If a comment is specified through ``-c/--comment`` command-line option, the specified comment
 will be used as it is.
