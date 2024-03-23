@@ -88,7 +88,8 @@ class TransactionEntry:
     def commit(
         self,
         force: Optional[bool] = False,
-        store: Optional["Store"] = None,  # type: ignore[name-defined] # noqa F821
+        store: Optional["Store"] = None,  # type: ignore[name-defined] # noqa F821,
+        skip_if_exists: Optional[bool] = False,
     ) -> bool:
         """Commit transaction entry by storing the required filse into the symbol store.
 
@@ -97,18 +98,22 @@ class TransactionEntry:
         :class:`this entry object <TransactionEntry>` and stored them in ``store``
         as a new entry.
 
-        :param force: True to overwrite any existing file from the store, else False.
+        :param force: `True` to overwrite any existing file from the store, else `False`.
         :param store: Optional :class:`Store <pdbstore.store.store.Store>` object.
-
-        :return: True if the file is stored successfully, else False if the file was
+        :param skip_if_exists: `True` to skip entry creation if the file already exists
+            in the store, else `False`
+        :return: `True` if the file is stored successfully, else `False` if the file was
                  alredy present.
         :raise:
             :CabCompressionError: if an error occurs during compressed file operation
             :CopyFileError: if an error occurs during file storage without compression
         """
-        if not force and self.is_committed():
+        if self.is_committed():
             # The file is already present, so keep it as it is
-            return False
+            if skip_if_exists:
+                return False
+            if not force:
+                return True
 
         dest_dir = self._stored_dir()
 

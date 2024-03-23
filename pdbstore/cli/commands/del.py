@@ -65,9 +65,8 @@ def delete(parser: PDBStoreArgumentParser, *args: Any) -> Any:
     store.next_transaction_id  # pylint: disable=pointless-statement
 
     # Delete the transaction from the store
-    summary: Summary
+    summary: Optional[Summary] = None
     summary_head: Optional[Summary] = None
-
     for trans_id in transaction_id if isinstance(transaction_id, list) else [transaction_id]:
         try:
             summary_del: Summary = store.delete_transaction(trans_id, opts.dry_run)
@@ -79,10 +78,10 @@ def delete(parser: PDBStoreArgumentParser, *args: Any) -> Any:
             output.error(
                 f"unexpected error when deleting {trans_id} transaction",
             )
-        if summary_head:
-            summary.linked = summary_del  # noqa: F821 # pylint: disable=used-before-assignment
+        if summary:
+            summary.linked = summary_del
         else:
             summary_head = summary_del
         summary = summary_del
 
-    return summary
+    return summary_head

@@ -61,8 +61,10 @@ def test_commit_success(tmp_store, test_data_native_dir):
         False,
     )
     assert entry.commit() is True
-    assert entry.commit() is False
-    assert entry.commit(True) is True
+    assert entry.commit(skip_if_exists=True) is False
+    assert entry.commit(force=True) is True
+    assert entry.commit(force=True, skip_if_exists=True) is False
+    assert entry.commit(force=True, skip_if_exists=False) is True
 
 
 def test_commit_failure(tmp_store, test_data_native_dir):

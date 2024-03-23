@@ -247,7 +247,9 @@ class Transaction:
         :param transaction_id: The transaction ID
         :param timestamp: The transaction date/time
         :param store: Optional :class:`Store <pdbstore.store.store.Store>` object
-        :param force: True to overwrite any existing file from the store, else False.
+        :param force: If **True** and a file is already present in the store, the existing
+            file will be overwritten and the file will be associated to ``transaction``, else
+            this function will only make the associated between the file and ``transaction``.
         :return: True if successful, else False
         :raise:
             :WriteFileError: Failed to update history file
@@ -282,7 +284,7 @@ class Transaction:
                         result[1],
                         TransactionType.ADD,
                     )
-                    if summary.status == OpStatus.SKIPPED:
+                    if result[1] == OpStatus.SUCCESS:
                         summary.status = OpStatus.SUCCESS
                 else:
                     summary.status = OpStatus.FAILED
