@@ -5,6 +5,7 @@ import pytest
 
 from pdbstore import cli
 from pdbstore.cli.exit_codes import ERROR_UNEXPECTED, SUCCESS
+from pdbstore.store import Store
 
 
 @pytest.mark.parametrize(
@@ -79,8 +80,36 @@ def test_complete(capsys, tmp_store_dir, test_data_native_dir):
         assert "" != out
         assert "" == err
 
+    # New file into the store
+    assert cli.cli.main(["add", "-Vquiet"] + argv) == SUCCESS
+
+    # Test through direct command-line with --delete option
+    with mock.patch(
+        "sys.argv",
+        [
+            "pdbstore",
+            "unused",
+        ]
+        + argv[0:2]
+        + [tomorrow, "--delete"],
+    ):
+        assert cli.cli.main() == SUCCESS
+        out, err = capsys.readouterr()
+        assert "" != out
+        assert "" == err
+        assert Store(tmp_store_dir).transactions.count == 0
+
+    # New file into the store
+    assert cli.cli.main(["add", "-Vquiet"] + argv) == SUCCESS
+
     # Test with direct call to main function
     assert cli.cli.main(["unused"] + argv[0:2] + [tomorrow]) == SUCCESS
+    out, err = capsys.readouterr()
+    assert "" != out
+    assert "" == err
+
+    # Test with direct call to main function with --delete option
+    assert cli.cli.main(["unused"] + argv[0:2] + [tomorrow, "--delete"]) == SUCCESS
     out, err = capsys.readouterr()
     assert "" != out
     assert "" == err
