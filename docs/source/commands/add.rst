@@ -60,9 +60,10 @@ The ``pdbstore add`` command stores all supported binary files, based on command
 into the specified store.
 
 The ``pdbstore add`` command will:
-- search for Portable Executable (**PE**) and **PDB** files if input directory is given
-- check all input files to detect **PE** and **PDB** files
-- extract **GUID** and **age** from required files
-- add files that are not referenced yet based on their **GUID** and **age**
-- delete oldest transactions if required
-- print a summary to **stdout** stream
+
+* Search for Portable Executable (**PE**) and **PDB** files if input directory is given.
+* Check all input files to detect **PE** and **PDB** files.
+* Extract **GUID** and **age** from required files.
+* Add files that are not referenced yet based on their **GUID** and **age**.
+* Delete oldest transactions if required.
+* Print a summary to **stdout** stream.

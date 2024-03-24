@@ -1,7 +1,7 @@
 CLI reference
 =============
 
-This section describe the Conan built-in commands, like ``pdbstore add`` or ``pdbstore del``.
+This section describe the **pdbstore** built-in commands, like ``pdbstore add`` or ``pdbstore del``.
 
 **Storage commands:**
 
