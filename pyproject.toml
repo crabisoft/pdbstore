@@ -135,6 +135,7 @@ disable = [
     "missing-module-docstring",
     "too-many-branches",
     "too-many-statements",
+    "duplicate-code",
 ]
 max-args=15 # Maximum number of arguments for function / method.
 max-attributes=20   # Maximum number of attributes for a class (see R0902).
