@@ -1,5 +1,25 @@
 # CHANGELOG
 
+## v1.0.0 (2024-03-24)
+
+### Breaking
+
+* feat(command): add --days option to unused command (#21)
+
+BREAKING CHANGE: DATE positional argument has been converted into an option ([`19424ea`](https://github.com/crabisoft/pdbstore/commit/19424eaff569e9c3cf004bc7678ee7bcd6d3ca75))
+
+### Chore
+
+* chore: update release worklow ([`cbe8de9`](https://github.com/crabisoft/pdbstore/commit/cbe8de9f357f972c9ccc58ea50f97fd7827a9d7e))
+
+### Documentation
+
+* docs: improve documentation (#23) ([`f7b2ba5`](https://github.com/crabisoft/pdbstore/commit/f7b2ba52dc60699f37b77c7baa9afadc4e67a3dc))
+
+### Feature
+
+* feat(command): display total file size for unused command (#22) ([`3d414cb`](https://github.com/crabisoft/pdbstore/commit/3d414cbfa192fa8c0e619a1aea5795e40f7f8074))
+
 ## v0.3.0 (2024-03-23)
 
 ### Feature
@@ -10,9 +30,9 @@
 
 ### Fix
 
-* fix(transaction): no transaction created if file already exists from store (#19) ([`1754d19`](https://github.com/crabisoft/pdbstore/commit/1754d19153c99006d5d1b61cf55679f319c0934d))
+* fix(transaction): no transaction created if file already exists from … (#19) ([`1754d19`](https://github.com/crabisoft/pdbstore/commit/1754d19153c99006d5d1b61cf55679f319c0934d))
 
-### Documentation
+### Unknown
 
 * doc: refactor documentation (#20) ([`c600537`](https://github.com/crabisoft/pdbstore/commit/c600537d6c9b348ecf0004d11a0920cb94979d7d))
 
@@ -34,7 +54,7 @@
 
 * test: add dedicated compression test when supported (#14) ([`3b6dfda`](https://github.com/crabisoft/pdbstore/commit/3b6dfdab3eb58d35735d0149d480cc9488548ff6))
 
-### Documentation
+### Unknown
 
 * doc: add promote command (#16) ([`c0e5328`](https://github.com/crabisoft/pdbstore/commit/c0e5328e1f725bc7eeac4fc98f802effd51f7bc0))
 
