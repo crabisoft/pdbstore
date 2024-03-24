@@ -1,6 +1,7 @@
 import json
 import os
 import time
+from datetime import datetime, timedelta
 from pathlib import Path
 
 from pdbstore import util
@@ -73,16 +74,25 @@ def unused_json_formatter(summary: Summary) -> None:
 )
 def unused(parser: PDBStoreArgumentParser, *args: Any) -> Any:
     """
-    Find all files not used since a specific date
+    Find all files not used based on the last access time of the files.
     """
     add_storage_arguments(parser)
 
-    parser.add_argument(
-        "date",
-        metavar="DATE",
-        nargs="?",
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument(
+        "--date",
+        metavar="YY-MM-DDDD",
+        dest="date",
         type=str,
-        help="""Date given YYYY-MM-DD format.""",
+        help="""Find all files that were last accessed before the specified date.""",
+    )
+    group.add_argument(
+        "--days",
+        metavar="DAYS",
+        dest="days",
+        type=str,
+        help="""Find all files that were last accessed before today minus the
+                amount of days specified by 'DAYS'.""",
     )
 
     parser.add_argument(
@@ -105,15 +115,23 @@ def unused(parser: PDBStoreArgumentParser, *args: Any) -> Any:
         raise CommandLineError("no symbol store directory given")
 
     input_date = opts.date
-    if not input_date:
-        raise CommandLineError("no date given")
+    input_days = opts.days
+
+    if not input_date and not input_days:
+        raise CommandLineError("no date or days given")
 
     store = Store(store_dir)
 
-    try:
-        input_date = time.strptime(input_date, "%Y-%m-%d")
-    except ValueError as vexc:
-        raise CommandLineError(f"'{input_date}' invalid date given") from vexc
+    if input_date:
+        try:
+            input_date = time.strptime(input_date, "%Y-%m-%d")
+        except ValueError as vexc:
+            raise CommandLineError(f"'{input_date}' invalid date given") from vexc
+    else:
+        try:
+            input_date = (datetime.today() - timedelta(days=int(input_days))).timetuple()
+        except ValueError as vexc:
+            raise CommandLineError(f"'{input_days}' invalid days given") from vexc
 
     output.verbose(f"Search files not used since {input_date}")
     input_date = time.mktime(input_date)
