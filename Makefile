@@ -34,6 +34,9 @@ TOX_CMD = $(VENV_ACTIVATE_CMD) $(PYTHON) -m tox
 else
 TOX_CMD = tox
 endif
+ifeq ($(VERBOSE),1)
+TOX_ARG := $(TOX_ARG) -v
+endif
 
 MNOPD = --no-print-directory
 
