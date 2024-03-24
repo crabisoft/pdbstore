@@ -39,8 +39,7 @@ def query_text_formatter(summary: Summary) -> None:
                         file_len = len(input_path)
                     else:
                         file_len = len(file_path)
-                    if (file_len + 2) > input_len:
-                        input_len = file_len + 2
+                    input_len = max(input_len, file_len + 2)
 
     cli_out_write(f"{'Input File':<{input_len}s}{'Compressed':^10s} Symbol File")
     for cur in summary.iterator():

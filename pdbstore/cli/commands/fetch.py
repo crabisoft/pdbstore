@@ -36,8 +36,7 @@ def fetch_text_formatter(summary: Summary) -> None:
                     file_path = symbol_path
                     symbol_path = None
                 file_len = len(symbol_path or file_path)
-                if (file_len + 2) > input_len:
-                    input_len = file_len + 2
+                input_len = max(input_len, file_len + 2)
 
     cli_out_write(f"{'Input File':<{input_len}s}{'Compressed':^10s} Symbol File")
     for cur in summary.iterator():
