@@ -44,14 +44,12 @@ anymore by the store.
 The ``--dry-run`` option can be used to obtain a summary of files to be deleted along
 the specified transaction.
 
-The ``pdbstore del`` will perform the requested delete operation with using transaction
+The ``pdbstore del`` will perform the requested delete operation using transaction
 identifier as unique criteria. If you want to delete transactions given more criteria,
 please refer to :ref:`commands_clean` command
 
 The ``pdbstore del`` command will:
-- search for Portable Executable (**PE**) and **PDB** files if input directory is given
-- check all input files to detect **PE** and **PDB** files
-- extract **GUID** and **age** from required files
-- add files that are not referenced yet based on their **GUID** and **age**
-- delete oldest transactions if required
-- print a summary to **stdout** stream
+
+* Search the requested transaction given by its identifier
+* Collect all files that are referenced only by the transaction
+* Remove all required files and empty directories

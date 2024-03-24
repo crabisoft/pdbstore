@@ -10,9 +10,9 @@
 
 ### Fix
 
-* fix(transaction): no transaction created if file already exists from … (#19) ([`1754d19`](https://github.com/crabisoft/pdbstore/commit/1754d19153c99006d5d1b61cf55679f319c0934d))
+* fix(transaction): no transaction created if file already exists from store (#19) ([`1754d19`](https://github.com/crabisoft/pdbstore/commit/1754d19153c99006d5d1b61cf55679f319c0934d))
 
-### Unknown
+### Documentation
 
 * doc: refactor documentation (#20) ([`c600537`](https://github.com/crabisoft/pdbstore/commit/c600537d6c9b348ecf0004d11a0920cb94979d7d))
 
@@ -34,7 +34,7 @@
 
 * test: add dedicated compression test when supported (#14) ([`3b6dfda`](https://github.com/crabisoft/pdbstore/commit/3b6dfdab3eb58d35735d0149d480cc9488548ff6))
 
-### Unknown
+### Documentation
 
 * doc: add promote command (#16) ([`c0e5328`](https://github.com/crabisoft/pdbstore/commit/c0e5328e1f725bc7eeac4fc98f802effd51f7bc0))
 
