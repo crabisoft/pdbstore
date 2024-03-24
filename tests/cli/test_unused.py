@@ -11,9 +11,12 @@ from pdbstore.store import Store
 @pytest.mark.parametrize(
     "argv",
     [
-        [""],
+        [],
         ["--store-dir", "/user/a/dir"],
-        ["2023-11-17"],
+        ["--date", "2023-11-17"],
+        ["--store-dir", "/user/a/dir", "--date", "2023-17-11"],
+        ["--days", "10"],
+        ["--store-dir", "/user/a/dir", "--days", "x"],
     ],
 )
 def test_incomplete(argv):
@@ -49,7 +52,7 @@ def test_complete(capsys, tmp_store_dir, test_data_native_dir):
             "unused",
         ]
         + argv[0:2]
-        + [tomorrow],
+        + ["--date", tomorrow],
     ):
         assert cli.cli.main() == SUCCESS
         out, err = capsys.readouterr()
@@ -57,7 +60,11 @@ def test_complete(capsys, tmp_store_dir, test_data_native_dir):
         assert "" == err
 
     # Test with direct call to main function when file not present yet
-    assert cli.cli.main(["unused"] + argv[0:2] + [tomorrow]) == SUCCESS
+    assert cli.cli.main(["unused"] + argv[0:2] + ["--date", tomorrow]) == SUCCESS
+    out, err = capsys.readouterr()
+    assert "" == out
+    assert "" == err
+    assert cli.cli.main(["unused"] + argv[0:2] + ["--days", "0"]) == SUCCESS
     out, err = capsys.readouterr()
     assert "" == out
     assert "" == err
@@ -73,7 +80,7 @@ def test_complete(capsys, tmp_store_dir, test_data_native_dir):
             "unused",
         ]
         + argv[0:2]
-        + [tomorrow],
+        + ["--date", tomorrow],
     ):
         assert cli.cli.main() == SUCCESS
         out, err = capsys.readouterr()
@@ -91,7 +98,7 @@ def test_complete(capsys, tmp_store_dir, test_data_native_dir):
             "unused",
         ]
         + argv[0:2]
-        + [tomorrow, "--delete"],
+        + ["--date", tomorrow, "--delete"],
     ):
         assert cli.cli.main() == SUCCESS
         out, err = capsys.readouterr()
@@ -103,13 +110,13 @@ def test_complete(capsys, tmp_store_dir, test_data_native_dir):
     assert cli.cli.main(["add", "-Vquiet"] + argv) == SUCCESS
 
     # Test with direct call to main function
-    assert cli.cli.main(["unused"] + argv[0:2] + [tomorrow]) == SUCCESS
+    assert cli.cli.main(["unused"] + argv[0:2] + ["--date", tomorrow]) == SUCCESS
     out, err = capsys.readouterr()
     assert "" != out
     assert "" == err
 
     # Test with direct call to main function with --delete option
-    assert cli.cli.main(["unused"] + argv[0:2] + [tomorrow, "--delete"]) == SUCCESS
+    assert cli.cli.main(["unused"] + argv[0:2] + ["--date", tomorrow, "--delete"]) == SUCCESS
     out, err = capsys.readouterr()
     assert "" != out
     assert "" == err
@@ -138,7 +145,7 @@ def test_multiple_with_config(capsys, dynamic_config_file, test_data_native_dir,
         pdb_path,
     ]
 
-    assert cli.cli.main(["unused"] + formatter[0:2] + argv[0:4] + [tomorrow]) == SUCCESS
+    assert cli.cli.main(["unused"] + formatter[0:2] + argv[0:4] + ["--date", tomorrow]) == SUCCESS
     out, err = capsys.readouterr()
     assert formatter[2] == out
     assert "" == err
@@ -150,7 +157,7 @@ def test_multiple_with_config(capsys, dynamic_config_file, test_data_native_dir,
     # Test through direct command-line
     with mock.patch(
         "sys.argv",
-        ["pdbstore", "unused"] + formatter[0:2] + argv[0:4] + [tomorrow],
+        ["pdbstore", "unused"] + formatter[0:2] + argv[0:4] + ["--date", tomorrow],
     ):
         assert cli.cli.main() == SUCCESS
         out, err = capsys.readouterr()
@@ -158,8 +165,9 @@ def test_multiple_with_config(capsys, dynamic_config_file, test_data_native_dir,
         assert "" == err
 
     # Test with direct call to main function
-    assert cli.cli.main(["unused"] + formatter[0:2] + argv[0:4] + [tomorrow]) == SUCCESS
+    assert cli.cli.main(["unused"] + formatter[0:2] + argv[0:4] + ["--date", tomorrow]) == SUCCESS
 
     assert (
-        cli.cli.main(["unused"] + formatter[0:2] + argv[0:4] + ["1970-15-05"]) == ERROR_UNEXPECTED
+        cli.cli.main(["unused"] + formatter[0:2] + argv[0:4] + ["--date", "1970-15-05"])
+        == ERROR_UNEXPECTED
     )
