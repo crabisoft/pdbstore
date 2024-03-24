@@ -19,6 +19,8 @@ def unused_text_formatter(summary: Summary) -> None:
         return
 
     input_len = 80
+    total_size = 0
+    clean_size = 0
     cli_out_write(f"{'Input File':<{input_len}s}{'Date':^10s}  Transaction ID")
     for cur in summary.iterator():
         files_list = sorted(cur.files, key=lambda k: k.get("date", "N/A"))
@@ -28,6 +30,8 @@ def unused_text_formatter(summary: Summary) -> None:
             transaction_id = file_entry.get("transaction_id", "N/A")
             status: OpStatus = OpStatus.from_str(file_entry.get("status", OpStatus.SKIPPED))
             error_msg = file_entry.get("error")
+            total_size += file_entry.get("file_size", 0)
+            clean_size += file_entry.get("del_size", 0)
 
             file_path = util.abbreviate(file_path, 80)
 
@@ -38,6 +42,10 @@ def unused_text_formatter(summary: Summary) -> None:
                     f"{str(file_path):<{input_len}s}{'N/A':^10s}  {error_msg or 'File not found'}"
                 )
 
+    if clean_size > 0:
+        cli_out_write(f"\n{clean_size} bytes deleted")
+    else:
+        cli_out_write(f"\n{total_size} bytes can be deleted")
     total = summary.failed(True)
     if total > 0:
         raise PDBAbortExecution(total)
@@ -51,6 +59,12 @@ def unused_json_formatter(summary: Summary) -> None:
 
     out = []
     for cur in summary.iterator():
+        total_size = 0
+        clean_size = 0
+        for file_entry in cur.files:
+            total_size += file_entry.get("file_size", 0)
+            clean_size += file_entry.get("del_size", 0)
+
         dct = {
             "status": cur.status.value,
             "success": cur.success(False),
@@ -58,6 +72,7 @@ def unused_json_formatter(summary: Summary) -> None:
             "skip": cur.skipped(True),
             "files": sorted(cur.files, key=lambda k: k.get("date", "N/A")),
             "message": cur.error_msg or "",
+            "file_size": total_size + clean_size,
         }
         out.append(dct)
 
@@ -133,7 +148,7 @@ def unused(parser: PDBStoreArgumentParser, *args: Any) -> Any:
         except ValueError as vexc:
             raise CommandLineError(f"'{input_days}' invalid days given") from vexc
 
-    output.verbose(f"Search files not used since {input_date}")
+    output.verbose(f"Search files not used since {time.strftime('%Y-%m-%d', input_date)}")
     input_date = time.mktime(input_date)
 
     # Check for each file is present to the specified store or not.
@@ -162,6 +177,9 @@ def unused(parser: PDBStoreArgumentParser, *args: Any) -> Any:
                         # All files associated to the transaction have been deleted,
                         # so we can delete the transaction
                         obselete_transactions.append(transaction)
+                    dct["del_size"] = file_stat.st_size
+                else:
+                    dct["file_size"] = file_stat.st_size
         except PDBStoreException as exp:  # pragma: no cover
             summary.add_file(util.path_to_str(entry.rel_path), OpStatus.FAILED, "ex:" + str(exp))
         except Exception as exc:  # pylint: disable=broad-except # pragma: no cover
