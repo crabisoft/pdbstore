@@ -1,5 +1,21 @@
 # CHANGELOG
 
+## v1.1.0 (2024-04-28)
+
+### Chore
+
+* chore: update dev dependencies (#27) ([`1278ae9`](https://github.com/crabisoft/pdbstore/commit/1278ae978bf8beed4c7175018c191c8afe433a16))
+
+* chore: add py312 &amp; py313 to tox environment list (#26) ([`25c6036`](https://github.com/crabisoft/pdbstore/commit/25c6036f258a7b405db0d99d2229a5bd215d774c))
+
+* chore: ensure same configuration for tools like black or flake8 (#25) ([`ca55e28`](https://github.com/crabisoft/pdbstore/commit/ca55e28551dcc147cbeadc8dcc88996d3429d993))
+
+* chore: remove conda publication (#24) ([`8fb1405`](https://github.com/crabisoft/pdbstore/commit/8fb14050df5ae8b189740a474803bbb93ed0ac26))
+
+### Feature
+
+* feat: upgrade Jinja2 (#28) ([`2ceece6`](https://github.com/crabisoft/pdbstore/commit/2ceece6ada6d5ef42d16410bd1ba6f07c82dcc13))
+
 ## v1.0.0 (2024-03-24)
 
 ### Breaking
