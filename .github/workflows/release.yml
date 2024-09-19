@@ -98,15 +98,15 @@ jobs:
           with:
             fetch-depth: 0
             token: ${{ secrets.RELEASE_GITHUB_TOKEN  }}
-        - uses: actions/download-artifact@v3
+        - uses: actions/download-artifact@v4.1.7
           with:
             name: linux-build
             path: installer/dist
-        - uses: actions/download-artifact@v3
+        - uses: actions/download-artifact@v4.1.7
           with:
             name: python-build
             path: dist
-        - uses: actions/download-artifact@v3
+        - uses: actions/download-artifact@v4.1.7
           with:
             name: windows-build
             path: installer/dist
