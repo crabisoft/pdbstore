@@ -9,16 +9,16 @@ from pdbstore.cli.args import (
 from pdbstore.cli.boolean_action import BooleanAction
 from pdbstore.cli.command import pdbstore_command, PDBStoreArgumentParser
 from pdbstore.cli.formatters import summary_json_formatter
+from pdbstore.entities import Summary
 from pdbstore.exceptions import (
     CommandLineError,
     CompressionNotSupportedError,
     PDBAbortExecution,
-    PDBStoreException,
-    UnknowFileTypeError,
 )
-from pdbstore.io.output import cli_out_write, PDBStoreOutput
-from pdbstore.store import OpStatus, Store, Summary, TransactionType
+from pdbstore.factory import open_store
+from pdbstore.io.output import cli_out_write
 from pdbstore.typing import Any, Optional
+from pdbstore.usecases.add import AddSymbolsInteractor
 
 
 def add_text_formatter(summary: Summary) -> None:
@@ -103,7 +103,6 @@ def add(parser: PDBStoreArgumentParser, *args: Any) -> Any:
 
     opts = parser.parse_args(*args)
 
-    output = PDBStoreOutput()
     # Check input configuration and arguments
     store_dir = opts.store_dir
     if not store_dir:
@@ -124,59 +123,13 @@ def add(parser: PDBStoreArgumentParser, *args: Any) -> Any:
     compress: bool = opts.compress
     if compress and not pdbstore.io.is_compression_supported():
         raise CompressionNotSupportedError()
-    store = Store(store_dir)
-    # Generate next transaction id
-    store.next_transaction_id  # pylint: disable=pointless-statement
 
-    # New transaction object to store all assocaited files
-    comment: Optional[str] = opts.comment or ""
-    new_transaction = store.new_transaction(
+    return AddSymbolsInteractor(open_store(store_dir)).execute(
+        [Path(file) for file in input_files],
         product_name,
         product_version,
-        comment,
+        opts.comment or "",
+        compress,
+        opts.force,
+        opts.keep_count or 0,
     )
-
-    success = 0
-    errors_list = []
-    for file in input_files:
-        try:
-            if new_transaction.register_entry(Path(file), compress):
-                success += 1
-        except UnknowFileTypeError as exu:
-            output.warning(f"{file}: not a known file type")
-            errors_list.append([file, str(exu)])
-        except PDBStoreException as exp:
-            output.error(str(exp))
-            errors_list.append([file, str(exp)])
-        except Exception as exg:  # pylint: disable=broad-except # pragma: no cover
-            errors_list.append([file, str(exg)])
-            output.error(f"unexpected error when adding {file} with the following error:")
-            output.error(exg)
-
-    if success > 0:
-        # Commit modifications to the disk
-        try:
-            summary = store.commit(new_transaction, opts.force)
-        except PDBStoreException as exc:
-            output.error(exc)
-            return Summary(new_transaction.id, OpStatus.FAILED, TransactionType.ADD)
-        except Exception as exc2:  # pylint: disable=broad-except
-            print(exc2)
-            output.error(
-                "unexpected error when filling Transaction object",
-            )
-            return Summary(new_transaction.id, OpStatus.FAILED, TransactionType.ADD)
-    else:
-        summary = Summary(None, OpStatus.SKIPPED, TransactionType.ADD)
-
-    for error in errors_list:
-        summary.add_file(error[0], OpStatus.FAILED, error[1])
-    # Clean oldest version
-    keep_count = opts.keep_count or 0
-    head = summary
-    if keep_count > 0:
-        summary_clean = store.remove_old_versions(product_name, product_version, keep_count)
-        head.linked = summary_clean
-        head = summary_clean
-
-    return summary

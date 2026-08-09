@@ -92,6 +92,9 @@ flake8: tox
 pylint: e=pylint ## Run pylint as static code analyser
 pylint: tox
 
+importlinter: e=importlinter ## Run import-linter to check the architecture layers
+importlinter: tox
+
 cover: e=cover ## Generate coverate report
 cover: tox
 

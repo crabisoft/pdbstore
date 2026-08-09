@@ -1,12 +1,15 @@
-from typing import Callable
+"""Report generation.
 
-from pdbstore.io.output import PDBStoreOutput
-from pdbstore.report.base import BaseStatistics
-from pdbstore.report.file import FileStatistics
-from pdbstore.report.product import ProductStatistics
-from pdbstore.report.transaction import TransactionStatistics
-from pdbstore.store import Store
-from pdbstore.typing import Dict, List, Optional
+.. deprecated::
+    The statistics are now collected by
+    :class:`GenerateReportInteractor <pdbstore.usecases.report.GenerateReportInteractor>`.
+    This class keeps the historical API by delegating to it.
+"""
+
+from pdbstore.typing import Any, cast, List, Optional, Union
+from pdbstore.usecases.report import GenerateReportInteractor
+from pdbstore.usecases.statistics.base import BaseStatistics
+from pdbstore.usecases.store_state import StoreState
 
 __all__ = ["ReportGenerator"]
 
@@ -14,34 +17,35 @@ __all__ = ["ReportGenerator"]
 class ReportGenerator:
     """Manage symbol store usage analysis data."""
 
-    PRODUCTS = "products"
-    FILES = "files"
-    TRANSACTIONS = "transactions"
+    PRODUCTS = GenerateReportInteractor.PRODUCTS
+    FILES = GenerateReportInteractor.FILES
+    TRANSACTIONS = GenerateReportInteractor.TRANSACTIONS
 
-    def __init__(self, store: Store) -> None:
-        self.store: Store = store
-        self.mapping: Dict[str, Callable[[], BaseStatistics]] = {
-            self.PRODUCTS: ProductStatistics,
-            self.FILES: FileStatistics,
-            self.TRANSACTIONS: TransactionStatistics,
-        }
+    def __init__(self, store: Union[StoreState, Any]) -> None:
+        self.store = store
+        self._interactor = GenerateReportInteractor(_state_of(store))
 
-    def generate(self, report_type: str = "products") -> Optional["BaseStatistics"]:
+    @property
+    def mapping(self) -> Any:
+        """Retrieve the supported report types and their builder."""
+        return self._interactor.mapping
+
+    def generate(self, report_type: str = "products") -> Optional[BaseStatistics]:
         """generate symbol store statistics given a report type
 
         :param report_type: Specify which kind of report must be generated. It can
-                            be `products` or `files`
+                            be `products`, `files` or `transactions`
         :return: The generated statistics if successsful, else None
         """
-        if report_type not in self.mapping:
-            PDBStoreOutput().error(f"{report_type} : unsupported report type")
-            return None
-
-        data = self.mapping[report_type]()
-        if not data.build(self.store):
-            return None  # pragma: no cover
-        return data
+        return self._interactor.execute(report_type)
 
     def supported_list(self) -> List[str]:
         """Retrieve the list of supported report types"""
-        return list(self.mapping.keys())
+        return self._interactor.supported_list()
+
+
+def _state_of(store: Union[StoreState, Any]) -> StoreState:
+    """Accept either a working set or a historical Store object."""
+    if isinstance(store, StoreState):
+        return store
+    return cast(StoreState, store.state)

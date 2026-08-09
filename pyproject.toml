@@ -136,6 +136,9 @@ disable = [
     "too-many-branches",
     "too-many-statements",
     "duplicate-code",
+    # An interactor exposes exactly one operation, and a value holder none at
+    # all; both are meant to be that small.
+    "too-few-public-methods",
 ]
 max-args=15 # Maximum number of arguments for function / method.
 max-attributes=20   # Maximum number of attributes for a class (see R0902).

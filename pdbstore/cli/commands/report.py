@@ -11,10 +11,27 @@ from pdbstore.cli.command import (
     PDBStoreArgumentParser,
 )
 from pdbstore.exceptions import CommandLineError
+from pdbstore.factory import open_store
 from pdbstore.io.output import cli_out_write
-from pdbstore.report import ReportGenerator, Statistics
-from pdbstore.store import Store
 from pdbstore.typing import Any, IO, Optional, TypedDict, Union
+from pdbstore.usecases.report import GenerateReportInteractor
+from pdbstore.usecases.statistics import Statistics
+
+
+class StoreLocation:
+    """What the report templates need to know about the analyzed store.
+
+    Templates head their output with the store location. Passing this rather
+    than the store itself keeps them working against a remote backend, where
+    ``rootdir`` names a URI instead of a directory.
+    """
+
+    def __init__(self, location: str) -> None:
+        self.rootdir: str = location
+
+    def __str__(self) -> str:
+        """Get the store location as a string."""
+        return self.rootdir
 
 
 class ReportDict(TypedDict):
@@ -22,7 +39,7 @@ class ReportDict(TypedDict):
 
     type: str
     start: float
-    store: Store
+    store: StoreLocation
     statistics: Statistics
     store_name: Optional[str]
     stream: Union[IO[Any], Path]
@@ -74,7 +91,7 @@ def report_product(
     """
     Generate a report based on product name and version
     """
-    return _report_command(ReportGenerator.PRODUCTS, parser, subparser, *args)
+    return _report_command(GenerateReportInteractor.PRODUCTS, parser, subparser, *args)
 
 
 @pdbstore_subcommand(
@@ -93,7 +110,7 @@ def report_file(
     """
     Generate a report based on files
     """
-    return _report_command(ReportGenerator.FILES, parser, subparser, *args)
+    return _report_command(GenerateReportInteractor.FILES, parser, subparser, *args)
 
 
 @pdbstore_subcommand(
@@ -112,7 +129,7 @@ def report_transaction(
     """
     Generate a report based on transactions
     """
-    return _report_command(ReportGenerator.TRANSACTIONS, parser, subparser, *args)
+    return _report_command(GenerateReportInteractor.TRANSACTIONS, parser, subparser, *args)
 
 
 def _report_command(
@@ -146,9 +163,9 @@ def _report_command(
     if not store_dir:
         raise CommandLineError("no symbol store directory given")
 
-    store = Store(store_dir)
+    state = open_store(store_dir)
 
-    generated = ReportGenerator(store).generate(report_type)
+    generated = GenerateReportInteractor(state).execute(report_type)
     if generated is None:
         raise CommandLineError(f"failed to generate {report_type} report")
 
@@ -160,7 +177,7 @@ def _report_command(
     report_dict: ReportDict = {
         "type": report_type,
         "start": start_time,
-        "store": store,
+        "store": StoreLocation(state.gateway.location),
         "statistics": generated.statistics,
         "store_name": store_name or "",
         "stream": opts.output,
