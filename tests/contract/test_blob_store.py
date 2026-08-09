@@ -77,6 +77,18 @@ def test_read_tail_returns_trailing_bytes(blob_store):
     assert blob_store.read_tail("k.txt", 100) == b"abcdef"
 
 
+def test_read_tail_of_nothing_is_empty(blob_store):
+    """Asking for no trailing byte reads nothing at all.
+
+    A backend serving this with a suffix range has no way to express an empty
+    range, so the answer has to be settled here rather than left to each
+    implementation.
+    """
+    blob_store.write_bytes("k.txt", b"abcdef")
+
+    assert blob_store.read_tail("k.txt", 0) == b""
+
+
 def test_reading_a_missing_blob_is_an_error(blob_store):
     """Reading what is not there fails rather than returning empty content."""
     with pytest.raises(exceptions.ReadFileError):
@@ -103,6 +115,18 @@ def test_list_walks_the_whole_prefix(blob_store):
         "p/one.txt",
         "q/three.txt",
     ]
+
+
+def test_listing_a_blob_yields_that_blob(blob_store):
+    """A prefix naming a single blob lists it, rather than nothing.
+
+    The storage sub-commands hand a key straight from the command line to
+    ``list``, and it may well designate one file instead of a subtree.
+    """
+    blob_store.write_bytes("p/one.txt", b"1")
+    blob_store.write_bytes("p/two.txt", b"2")
+
+    assert list(blob_store.list("p/one.txt")) == ["p/one.txt"]
 
 
 def test_streams_round_trip(blob_store):

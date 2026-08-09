@@ -96,6 +96,10 @@ class BlobStore(ABC):
     def list(self, prefix: str = "") -> Iterator[str]:
         """Iterate over the keys starting with a prefix.
 
+        A prefix that happens to name a blob lists that blob alone, so a caller
+        holding a key it did not produce — a command line argument, typically —
+        does not have to know whether it designates one file or a whole subtree.
+
         :param prefix: The key prefix to be listed. An empty prefix lists the
             whole store.
         :return: An iterator over the matching keys.
@@ -121,9 +125,10 @@ class BlobStore(ABC):
         request, so the cost stays independent of the blob size.
 
         :param key: The key to be read.
-        :param size: The number of trailing bytes to read.
+        :param size: The number of trailing bytes to read. Nothing is read when
+            it is not positive.
         :return: The trailing bytes, shorter than ``size`` when the blob is
-            smaller, empty when the blob is missing.
+            smaller, empty when the blob is missing or ``size`` is not positive.
         """
 
     @abstractmethod
