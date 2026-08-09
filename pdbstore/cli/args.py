@@ -29,17 +29,16 @@ def add_global_arguments(
 
 def add_storage_arguments(parser: argparse.ArgumentParser, single: bool = True) -> None:
     """Add storage command-line options"""
+    location = "Root directory of the symbol store, or a URI such as s3://bucket/prefix."
     if single:
-        help_msg = (
-            "Local root directory for the symbol store. " f"[env var: {ENV_PDBSTORE_STORAGE_DIR}]"
-        )
+        help_msg = f"{location} [env var: {ENV_PDBSTORE_STORAGE_DIR}]"
     else:
-        help_msg = "Local root directory for the output symbol store."
+        help_msg = location.replace("the symbol store", "the output symbol store")
 
     parser.add_argument(
         "-s",
         "--store-dir",
-        metavar="DIRECTORY",
+        metavar="LOCATION",
         dest="store_dir",
         type=str,
         help=help_msg,
@@ -52,10 +51,10 @@ def add_storage_arguments(parser: argparse.ArgumentParser, single: bool = True) 
         parser.add_argument(
             "-i",
             "--input-store-dir",
-            metavar="DIRECTORY",
+            metavar="LOCATION",
             dest="input_store_dir",
             type=str,
-            help="Local root directory for the input symbol store.",
+            help=location.replace("the symbol store", "the input symbol store"),
             required=False,
             default=None,
             action=OnceArgument,
