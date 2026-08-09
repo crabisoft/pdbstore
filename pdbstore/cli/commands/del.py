@@ -1,10 +1,12 @@
 from pdbstore.cli.args import add_global_arguments, add_storage_arguments
 from pdbstore.cli.command import pdbstore_command, PDBStoreArgumentParser
 from pdbstore.cli.formatters import summary_json_formatter
+from pdbstore.entities import OpStatus, Summary, TransactionType
 from pdbstore.exceptions import CommandLineError, PDBAbortExecution, PDBStoreException
+from pdbstore.factory import open_store
 from pdbstore.io.output import cli_out_write, PDBStoreOutput
-from pdbstore.store import OpStatus, Store, Summary, TransactionType
-from pdbstore.typing import Any, Optional
+from pdbstore.typing import Any, List
+from pdbstore.usecases.delete import chain_summaries, DeleteTransactionInteractor
 
 __MAPPING__ = {"del": "delete"}
 
@@ -60,28 +62,23 @@ def delete(parser: PDBStoreArgumentParser, *args: Any) -> Any:
     if not transaction_id:
         raise CommandLineError("no transaction ID given")
 
-    store = Store(store_dir)
+    state = open_store(store_dir)
     # Generate next transaction id
-    store.next_transaction_id  # pylint: disable=pointless-statement
+    state.gateway.next_transaction_id  # pylint: disable=pointless-statement
 
-    # Delete the transaction from the store
-    summary: Optional[Summary] = None
-    summary_head: Optional[Summary] = None
+    # Delete the transactions from the store
+    interactor = DeleteTransactionInteractor(state)
+    summaries: List[Summary] = []
     for trans_id in transaction_id if isinstance(transaction_id, list) else [transaction_id]:
         try:
-            summary_del: Summary = store.delete_transaction(trans_id, opts.dry_run)
+            summaries.append(interactor.execute(trans_id, opts.dry_run))
         except PDBStoreException as exp:
             output.error(str(exp))
-            summary_del = Summary(trans_id, OpStatus.FAILED, TransactionType.DEL, str(exp))
+            summaries.append(Summary(trans_id, OpStatus.FAILED, TransactionType.DEL, str(exp)))
         except BaseException as exg:  # pylint: disable=broad-exception-caught # pragma: no cover
-            summary_del = Summary(trans_id, OpStatus.FAILED, TransactionType.DEL, str(exg))
+            summaries.append(Summary(trans_id, OpStatus.FAILED, TransactionType.DEL, str(exg)))
             output.error(
                 f"unexpected error when deleting {trans_id} transaction",
             )
-        if summary:
-            summary.linked = summary_del
-        else:
-            summary_head = summary_del
-        summary = summary_del
 
-    return summary_head
+    return chain_summaries(summaries) if summaries else None

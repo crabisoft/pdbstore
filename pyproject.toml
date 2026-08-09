@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "pdbstore"
 version = "1.1.0"
-description="manage PDB and PE files through a local symbols store"
+description="manage PDB and PE files through a local or cloud-hosted symbols store"
 requires-python = ">=3.8"
 license = { text = "MIT" }
 classifiers = [
@@ -26,6 +26,9 @@ readme = "README.rst"
 authors = [{ name = "Jacques Raphanel", email = "jrp@crabisoft.fr" }]
 keywords=["development", "symstore", "pdb", "pdbstore"]
 dependencies = ["colorama", "pefile", "Jinja2"]
+
+[project.optional-dependencies]
+s3 = ["boto3>=1.36"]  # 1.36 is the first release exposing S3 conditional writes
 
 [project.scripts]
 pdbstore = "pdbstore.cli.cli:main"
@@ -136,6 +139,9 @@ disable = [
     "too-many-branches",
     "too-many-statements",
     "duplicate-code",
+    # An interactor exposes exactly one operation, and a value holder none at
+    # all; both are meant to be that small.
+    "too-few-public-methods",
 ]
 max-args=15 # Maximum number of arguments for function / method.
 max-attributes=20   # Maximum number of attributes for a class (see R0902).

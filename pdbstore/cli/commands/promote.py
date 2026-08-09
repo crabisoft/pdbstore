@@ -1,10 +1,14 @@
 from pdbstore.cli.args import add_global_arguments, add_storage_arguments
 from pdbstore.cli.command import pdbstore_command, PDBStoreArgumentParser
 from pdbstore.cli.formatters import summary_json_formatter
+from pdbstore.entities import OpStatus, Summary, TransactionType
 from pdbstore.exceptions import CommandLineError, PDBAbortExecution, PDBStoreException
+from pdbstore.factory import open_store
 from pdbstore.io.output import cli_out_write, PDBStoreOutput
-from pdbstore.store import OpStatus, Store, Summary, TransactionType
-from pdbstore.typing import Any, Optional
+from pdbstore.typing import Any, List
+from pdbstore.usecases import lookup
+from pdbstore.usecases.delete import chain_summaries
+from pdbstore.usecases.promote import PromoteTransactionInteractor
 
 
 def promote_text_formatter(summary: Summary) -> None:
@@ -79,27 +83,21 @@ def promote(parser: PDBStoreArgumentParser, *args: Any) -> Any:
     if not transaction_id:
         raise CommandLineError("no transaction ID given")
 
-    store_in = Store(input_store_dir)
-    store_out = Store(output_store_dir)
+    state_in = open_store(input_store_dir)
+    state_out = open_store(output_store_dir)
 
-    summary: Optional[Summary] = None
-    summary_head: Optional[Summary] = None
+    interactor = PromoteTransactionInteractor(state_out)
+    summaries: List[Summary] = []
 
     for trans_id in transaction_id if isinstance(transaction_id, list) else [transaction_id]:
         try:
-            trans_in = store_in.find_transaction(trans_id, TransactionType.ADD)
-            summary_trans = store_out.promote_transaction(trans_in, opts.comment)
+            trans_in = lookup.find_transaction(state_in.transactions, trans_id, TransactionType.ADD)
+            summaries.append(interactor.execute(trans_in, state_in.gateway, opts.comment))
         except PDBStoreException as pdbse:
-            summary_trans = Summary(trans_id, OpStatus.FAILED, None, str(pdbse))
+            summaries.append(Summary(trans_id, OpStatus.FAILED, None, str(pdbse)))
         except Exception as exc:  # pylint: disable=broad-except # pragma: no cover
-            summary_trans = Summary(trans_id, OpStatus.FAILED, None, str(exc))
+            summaries.append(Summary(trans_id, OpStatus.FAILED, None, str(exc)))
             output.error(f"unexpected error when promoting {trans_id}")
             output.error(exc)
 
-        if summary:
-            summary.linked = summary_trans
-        else:
-            summary_head = summary_trans
-        summary = summary_trans
-
-    return summary_head
+    return chain_summaries(summaries) if summaries else None

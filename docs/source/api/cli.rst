@@ -1,6 +1,8 @@
 cli package
 ===========
 
+.. automodule:: pdbstore.cli
+
 .. toctree::
    :caption: cli package
    :maxdepth: 1

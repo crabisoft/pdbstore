@@ -232,7 +232,7 @@ You need to install ``tox`` using one of the following approach:
 Running integration tests
 -------------------------
 
-Integration tests run against a local symbol store. 
+Integration tests run against a local symbol store.
 
 To run these tests:
 
@@ -240,6 +240,36 @@ To run these tests:
 
    # run the CLI tests:
    tox -e cli
+
+
+Running the contract tests
+--------------------------
+
+``tests/contract`` states what a storage backend owes the rest of the code, and
+is replayed against every backend in turn. It runs as part of ``tox``, with the
+S3 backend served by an emulator.
+
+An emulator cannot answer whether a given object store really honors the
+conditional writes that keep two simultaneous publications from overwriting one
+another. Point ``PDBSTORE_TEST_S3_ENDPOINT`` at a running server to have the
+whole suite replayed against it:
+
+.. code-block:: bash
+
+   docker run -d -p 9000:9000 \
+     -e MINIO_ROOT_USER=minioadmin -e MINIO_ROOT_PASSWORD=minioadmin \
+     quay.io/minio/minio server /data
+
+   export PDBSTORE_TEST_S3_ENDPOINT=http://127.0.0.1:9000
+   export AWS_ACCESS_KEY_ID=minioadmin
+   export AWS_SECRET_ACCESS_KEY=minioadmin
+
+   tox -e contract
+
+Credentials come from the usual AWS chain, so those two variables are only what
+a default MinIO expects. Without ``PDBSTORE_TEST_S3_ENDPOINT`` the tests
+concerned are skipped rather than silently dropped, and each one works in a key
+prefix of its own, so an existing bucket may be used.
 
 
 Releases

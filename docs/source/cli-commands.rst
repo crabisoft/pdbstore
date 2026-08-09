@@ -17,6 +17,7 @@ This section describe the **pdbstore** built-in commands, like ``pdbstore add`` 
    commands/query
    commands/promote
    commands/report
+   commands/storage
    commands/unused
 
 - :doc:`pdbstore add <commands/add>`: Add files to local symbol store
@@ -26,4 +27,5 @@ This section describe the **pdbstore** built-in commands, like ``pdbstore add`` 
 - :doc:`pdbstore query <commands/query>`: Check if file(s) are indexed from local symbol store
 - :doc:`pdbstore promote <commands/promote>`: Promote one transaction from one symbol store to another one
 - :doc:`pdbstore report <commands/report>`: Generate report for a local symbol store
+- :doc:`pdbstore storage <commands/storage>`: Migrate a symbol store from one storage backend to another one
 - :doc:`pdbstore unused <commands/unused>`: Find all files not used since a specific date

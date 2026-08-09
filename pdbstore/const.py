@@ -13,6 +13,9 @@ __all__ = [
     "ENV_PDBSTORE_STORAGE_DIR",
     "ENV_PDBSTORE_VERBOSE",
     "ENV_PDBSTORE_COLOR_DARK",
+    "ENV_PDBSTORE_S3_ENDPOINT_URL",
+    "ENV_PDBSTORE_S3_PROFILE",
+    "ENV_PDBSTORE_S3_REGION",
 ]
 
 #
@@ -109,6 +112,26 @@ It must be formatted with ``NAME/VERSION``, where:
 
 ENV_PDBSTORE_API_KEY = "PDBSTORE_API_KEY"
 """API key required for remote symbol server authentication with HTTP/HTTPS requests
+"""
+
+ENV_PDBSTORE_S3_ENDPOINT_URL = "PDBSTORE_S3_ENDPOINT_URL"
+"""Endpoint of the object store serving an ``s3://`` symbol store
+
+Only needed when the target is not AWS itself, such as MinIO or Ceph.
+Ex.: https://minio.internal:9000
+"""
+
+ENV_PDBSTORE_S3_REGION = "PDBSTORE_S3_REGION"
+"""Region of the bucket holding an ``s3://`` symbol store
+
+Overrides the region resolved from the AWS configuration.
+"""
+
+ENV_PDBSTORE_S3_PROFILE = "PDBSTORE_S3_PROFILE"
+"""Named AWS profile to authenticate an ``s3://`` symbol store with
+
+Credentials otherwise come from the standard AWS resolution chain, so the
+usual environment variables, shared config files and instance roles apply.
 """
 
 ENV_PDBSTORE_TEMP_DIR = "PDBSTORE_TEMP_DIR"

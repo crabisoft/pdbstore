@@ -52,6 +52,48 @@ jobs:
       - name: Run tests
         run: tox -e ${{ matrix.python.toxenv }} -- --override-ini='log_cli=True'
 
+  # The contract suite runs on an emulator in every other job. Here it is
+  # replayed against a server that is really listening, because that is the
+  # only place an object store refusing conditional writes shows up: every
+  # other test passes, and a transaction is silently lost under concurrency.
+  object-store:
+    name: contract on a live object store
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.1.0
+      - name: Set up Python
+        uses: actions/setup-python@v4.7.0
+        with:
+          python-version: "3.11"
+      - name: Install gcab
+        run: sudo apt-get install -y gcab
+      # Pinned so a failure means our change broke, not that upstream moved.
+      # Bumping this tag is how the store is re-checked against a newer server.
+      - name: Start MinIO
+        run: |
+          docker run -d --name minio -p 9000:9000 \
+            -e MINIO_ROOT_USER=minioadmin \
+            -e MINIO_ROOT_PASSWORD=minioadmin \
+            quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z server /data
+          for _ in $(seq 60); do
+            if curl -sf http://127.0.0.1:9000/minio/health/live > /dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "MinIO never became ready"
+          docker logs minio
+          exit 1
+      - name: Install dependencies
+        run: pip install tox
+      - name: Replay the contract suite on MinIO
+        env:
+          PDBSTORE_TEST_S3_ENDPOINT: http://127.0.0.1:9000
+          AWS_ACCESS_KEY_ID: minioadmin
+          AWS_SECRET_ACCESS_KEY: minioadmin
+          AWS_DEFAULT_REGION: us-east-1
+        run: tox -e contract -- --override-ini='log_cli=True'
+
   coverage:
     runs-on: ubuntu-22.04
     strategy:

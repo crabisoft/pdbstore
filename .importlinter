@@ -1,0 +1,74 @@
+; Layering rules for the Clean Architecture arrangement.
+;
+; Run with `lint-imports`, or through `tox -e lint`.
+;
+; The point of these contracts is that the dependency rule stops being a
+; convention people remember and becomes something CI refuses to merge. In
+; particular they are what keeps the storage backend swappable: if an interactor
+; ever reaches for a filesystem or an object store directly, the build fails
+; here rather than at the moment someone tries to point the store at S3.
+
+[importlinter]
+root_package = pdbstore
+
+; Cross-cutting and shared kernel modules, deliberately outside the layering:
+;
+;   pdbstore.typing / const / exceptions  - shared vocabulary, no behaviour
+;   pdbstore.util                         - pure helpers over strings and paths
+;   pdbstore.io.output / io.colors        - console reporting, used at every level
+;
+; Everything else under pdbstore.io - the PE, PDB and cab handling - is a driver
+; and is reached through a gateway. It still lives under pdbstore.io for
+; backwards compatibility; relocating it under pdbstore.drivers is a breaking
+; change held back for the next major version.
+
+[importlinter:contract:layers]
+name = Dependencies point inwards
+type = layers
+layers =
+    pdbstore.cli
+    pdbstore.drivers
+    pdbstore.adapters
+    pdbstore.usecases
+    pdbstore.entities
+
+[importlinter:contract:entities-are-pure]
+name = Entities reach nothing outside themselves
+type = forbidden
+source_modules =
+    pdbstore.entities
+forbidden_modules =
+    pdbstore.io
+    pdbstore.config
+    pdbstore.factory
+    pdbstore.store
+
+[importlinter:contract:blob-store-is-for-storage-admin-only]
+name = Only storage administration sees the blob store
+type = forbidden
+source_modules =
+    pdbstore.usecases
+forbidden_modules =
+    pdbstore.usecases.gateways.blob_store
+ignore_imports =
+    ; Migrating a store is expressed in keys, so these interactors legitimately
+    ; work at the blob level - that is the whole exception this rule carves out.
+    pdbstore.usecases.storage.migrate -> pdbstore.usecases.gateways.blob_store
+    pdbstore.usecases.storage.verify -> pdbstore.usecases.gateways.blob_store
+    ; The symbol store gateway reports blob metadata, and the package re-exports
+    ; the name; neither reaches a blob store.
+    pdbstore.usecases.gateways.symbol_store -> pdbstore.usecases.gateways.blob_store
+    pdbstore.usecases.gateways -> pdbstore.usecases.gateways.blob_store
+
+[importlinter:contract:parsers-stay-behind-a-gateway]
+name = Nobody parses a file format except the drivers
+type = forbidden
+source_modules =
+    pdbstore.entities
+    pdbstore.usecases
+    pdbstore.adapters
+forbidden_modules =
+    pdbstore.io.file
+    pdbstore.io.cab
+    pdbstore.io.pdbfile
+    pdbstore.io.portablepdbfile

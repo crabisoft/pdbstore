@@ -1,34 +1,47 @@
-import os
-from typing import List, Optional
+"""Store-bound history.
 
-from pdbstore.exceptions import WriteFileError
-from pdbstore.io import file
-from pdbstore.io.output import PDBStoreOutput
+.. deprecated::
+    The history is now read and written through the symbol store gateway. This
+    class keeps the historical API by delegating to it.
+"""
+
+from pdbstore.entities import symsrv_layout
+from pdbstore.entities.transaction_type import TransactionType
 from pdbstore.store.transaction import Transaction
-from pdbstore.store.transaction_type import TransactionType
+from pdbstore.typing import Any, cast, List, TYPE_CHECKING
+
+if TYPE_CHECKING:  # pragma: no cover
+    from pdbstore.store.store import Store
+
+
+__all__ = ["History"]
 
 
 class History:
-    """Manage history.txt content"""
+    """The full operation history of a symbol store."""
 
-    def __init__(self, store: "Store"):  # type: ignore[name-defined] # noqa: F821
-        self.store: "Store" = store  # type: ignore[name-defined] # noqa: F821
-        self.transactions_list: Optional[List[Transaction]] = None
+    def __init__(self, store: "Store"):
+        self.store: "Store" = store
 
     def file_exists(self) -> bool:
         """Determine whether the history file exists or not
 
         :return: True if the file exists, else False
         """
-        exists: bool = self.store.history_file_path.is_file()
-        return exists
+        return self.store.gateway.blob.is_blob(symsrv_layout.history_key())
 
     @property
     def transactions(self) -> List[Transaction]:
         """Get the transactions list."""
-        if self.transactions_list is None:
-            self.transactions_list = self._parse()
-        return self.transactions_list
+        return cast(List[Transaction], self.store.state.history)
+
+    @property
+    def transactions_list(self) -> List[Transaction]:
+        """Get the transactions list.
+
+        .. deprecated:: Use :attr:`transactions` instead.
+        """
+        return self.transactions
 
     def __len__(self) -> int:
         """Retrieve the total number of transactions."""
@@ -38,16 +51,16 @@ class History:
         """Retrieve a transaction given its zero-based index."""
         return self.transactions[item]
 
-    def add(self, transaction: Transaction) -> None:
+    def add(self, transaction: Any) -> None:
         """Register a new 'add' operation
 
         :param transaction: The transaction to be added.
         :raise:
             :WriteFileError: Failed to update history file
         """
-        self._write_line(f"{transaction}")
-        if self.transactions_list is not None:
-            self.transactions.append(transaction)
+        self.store.gateway.append_history(f"{transaction}")
+        if isinstance(transaction, Transaction):
+            self.store.state.remember_history(transaction)
 
     def delete(self, transaction: Transaction, delete_id: str) -> None:
         """Register a new 'del' operation
@@ -57,63 +70,16 @@ class History:
         :raise:
             :WriteFileError: Failed to update history file.
         """
-        self._write_line(f"{delete_id},del,{transaction.id}")
-        if self.transactions_list is not None:
-            self.transactions.append(
-                Transaction(
-                    self.store,
-                    delete_id,
-                    TransactionType.DEL,
-                    deleted_id=transaction.id,
-                )
+        self.store.gateway.append_history(f"{delete_id},del,{transaction.id}")
+        self.store.state.remember_history(
+            Transaction(
+                self.store,
+                delete_id,
+                TransactionType.DEL,
+                deleted_id=transaction.id,
             )
-
-    def _parse(self) -> List[Transaction]:
-        """Parse history file.
-        :return List of loaded :class:`Transaction` objects
-        :raise:
-            :ReadFileError: Failed to read history file
-        """
-        if not self.file_exists():
-            PDBStoreOutput().debug(f"{self.store.history_file_path} not found")
-
-            return []
-        transactions = []
-
-        for line in file.read_text_file(self.store.history_file_path, True):
-            transaction = Transaction.parse_line(self.store, line)
-            if transaction:
-                transactions.append(transaction)
-
-        return transactions
-
-    def _write_line(self, new_line: str) -> None:
-        """Write a new line into the history file.
-        :param new_line: The line to be added.
-        :raise:
-            :WriteFileError: Failed to update history file
-        """
-        try:
-            empty = True
-            if (
-                self.store.history_file_path.is_file()
-                and os.stat(os.fspath(self.store.history_file_path)).st_size != 0
-            ):
-                empty = False
-            elif not self.store.admin_dir.is_dir():
-                self.store.admin_dir.mkdir(parents=True)
-
-            with self.store.history_file_path.open("ab+") as fph:
-                if not empty:
-                    # Ensure that newline character is present at the end of the file
-                    nls = os.linesep.encode("utf-8")
-                    fph.seek(-len(nls), os.SEEK_END)
-                    if fph.read(len(nls)) != nls:
-                        fph.write(nls)
-                fph.write(new_line.encode("utf-8"))
-        except OSError as exc:
-            raise WriteFileError(self.store.history_file_path) from exc
+        )
 
     def reset(self) -> None:
         """Reset to the transactions list to `None`."""
-        self.transactions_list = None
+        self.store.state.reset()

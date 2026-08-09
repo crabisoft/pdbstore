@@ -5,10 +5,12 @@ from pdbstore.cli.args import (
 )
 from pdbstore.cli.command import pdbstore_command, PDBStoreArgumentParser
 from pdbstore.cli.formatters import summary_json_formatter
+from pdbstore.entities import OpStatus, Summary, TransactionType
 from pdbstore.exceptions import CommandLineError, PDBAbortExecution
+from pdbstore.factory import open_store
 from pdbstore.io.output import cli_out_write, PDBStoreOutput
-from pdbstore.store import OpStatus, Store, Summary, TransactionType
 from pdbstore.typing import Any, Optional
+from pdbstore.usecases.delete import CleanOldVersionsInteractor
 
 
 def clean_text_formatter(summary: Summary) -> None:
@@ -88,9 +90,7 @@ def clean(parser: PDBStoreArgumentParser, *args: Any) -> Any:
     comment: Optional[str] = opts.comment
     dry_run: bool = opts.dry_run
 
-    store = Store(store_dir)
-
-    # Delete the transaction from the store
-    summary = store.remove_old_versions(product_name, product_version, keep_count, comment, dry_run)
-
-    return summary
+    # Delete the obsolete transactions from the store
+    return CleanOldVersionsInteractor(open_store(store_dir)).execute(
+        product_name, product_version, keep_count, comment, dry_run
+    )

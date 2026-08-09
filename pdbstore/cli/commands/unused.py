@@ -1,16 +1,16 @@
 import json
-import os
 import time
 from datetime import datetime, timedelta
-from pathlib import Path
 
 from pdbstore import util
 from pdbstore.cli.args import add_global_arguments, add_storage_arguments
 from pdbstore.cli.command import pdbstore_command, PDBStoreArgumentParser
-from pdbstore.exceptions import CommandLineError, PDBAbortExecution, PDBStoreException
+from pdbstore.entities import OpStatus, Summary
+from pdbstore.exceptions import CommandLineError, PDBAbortExecution
+from pdbstore.factory import open_store
 from pdbstore.io.output import cli_out_write, PDBStoreOutput
-from pdbstore.store import OpStatus, Store, Summary, Transaction, TransactionType
-from pdbstore.typing import Any, Dict, List
+from pdbstore.typing import Any
+from pdbstore.usecases.unused import FindUnusedFilesInteractor
 
 
 def unused_text_formatter(summary: Summary) -> None:
@@ -135,8 +135,6 @@ def unused(parser: PDBStoreArgumentParser, *args: Any) -> Any:
     if not input_date and not input_days:
         raise CommandLineError("no date or days given")
 
-    store = Store(store_dir)
-
     if input_date:
         try:
             input_date = time.strptime(input_date, "%Y-%m-%d")
@@ -149,45 +147,7 @@ def unused(parser: PDBStoreArgumentParser, *args: Any) -> Any:
             raise CommandLineError(f"'{input_days}' invalid days given") from vexc
 
     output.verbose(f"Search files not used since {time.strftime('%Y-%m-%d', input_date)}")
-    input_date = time.mktime(input_date)
 
-    # Check for each file is present to the specified store or not.
-    summary = Summary(None, OpStatus.SUCCESS, TransactionType.UNUSED)
-
-    obselete_transactions: List[Transaction] = []
-    deletion_dict: Dict[str, int] = {}
-    for transaction, entry in store.iterator(lambda x: not x.is_deleted()):
-        try:
-            output.verbose(f"checking {entry.rel_path} ...")
-            file_path: Path = entry.stored_path
-            file_stat: os.stat_result = file_path.stat()
-            if file_stat.st_atime < input_date:
-                dct = summary.add_file(entry.rel_path, OpStatus.SUCCESS)
-                dct["date"] = time.strftime("%Y-%m-%d", time.localtime(file_stat.st_atime))
-                dct["transaction_id"] = transaction.id
-                if opts.delete:
-                    try:
-                        dir_path: Path = store.rootdir / entry.file_name / entry.file_hash
-                        dir_path.rmdir()
-                    except OSError:
-                        pass
-                    count = deletion_dict.get(transaction.id, 0) + 1
-                    deletion_dict[transaction.id] = count
-                    if count == transaction.count:
-                        # All files associated to the transaction have been deleted,
-                        # so we can delete the transaction
-                        obselete_transactions.append(transaction)
-                    dct["del_size"] = file_stat.st_size
-                else:
-                    dct["file_size"] = file_stat.st_size
-        except PDBStoreException as exp:  # pragma: no cover
-            summary.add_file(util.path_to_str(entry.rel_path), OpStatus.FAILED, "ex:" + str(exp))
-        except Exception as exc:  # pylint: disable=broad-except # pragma: no cover
-            summary.add_file(util.path_to_str(entry.rel_path), OpStatus.FAILED, str(exc))
-            output.error(exc)
-            output.error("unexpected error when checking {file_path} file usage")
-
-    # Delete all required obselete transactions
-    for transaction in obselete_transactions:
-        store.delete_transaction(transaction.id)
-    return summary
+    return FindUnusedFilesInteractor(open_store(store_dir)).execute(
+        time.mktime(input_date), opts.delete
+    )

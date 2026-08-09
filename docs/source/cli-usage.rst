@@ -80,7 +80,8 @@ parameters. You can override the values in each symbol store section.
      - Description
    * - ``store``
      - ``str``
-     - Local root directory for the symbol store.
+     - Location of the symbol store. It can be a local root directory, or a URI
+       naming another storage backend. See :ref:`cli_storage_backends`.
    * - ``product``
      - ``str``
      - Name of the product.
@@ -89,6 +90,83 @@ parameters. You can override the values in each symbol store section.
      - Version of the product.
 
 A ``store`` name must defined for each symbol store section with unique name.
+
+.. _cli_storage_backends:
+
+Storage backends
+================
+
+A symbol store is designated by a location, either through the ``store`` option
+of a configuration file, or through the ``-s/--store-dir`` command-line option.
+That location can name any of the supported backends:
+
+.. list-table:: Store locations
+   :header-rows: 1
+
+   * - Location
+     - Description
+   * - ``/some/where/release``
+     - A local directory. This is the default when the location has no scheme.
+   * - ``file:///some/where/release``
+     - The same local directory, written as a URI.
+   * - ``s3://mybucket/release``
+     - An Amazon S3 bucket, optionally with a key prefix so that a single
+       bucket can host several stores.
+
+Whichever backend is used, the store keeps the very same layout, so it stays
+readable by ``symsrv.dll`` and Visual Studio. A store can therefore be moved
+from one backend to another with the :ref:`pdbstore storage migrate
+<commands_storage>` command without any of its content being re-interpreted.
+
+Amazon S3
+---------
+
+The S3 backend requires the ``boto3`` package, which is not installed by
+default:
+
+.. code-block:: console
+
+   $ pip install --upgrade "pdbstore[s3]"
+
+Credentials are resolved through the standard AWS chain, so the usual
+``AWS_*`` environment variables, shared configuration files and instance roles
+all apply. The following environment variables cover what that chain cannot
+express:
+
+.. list-table:: S3 environment variables
+   :header-rows: 1
+
+   * - Variable
+     - Description
+   * - ``PDBSTORE_S3_ENDPOINT_URL``
+     - Endpoint of the object store. Only needed when the target is not AWS
+       itself, such as MinIO or Ceph.
+   * - ``PDBSTORE_S3_REGION``
+     - Region of the bucket, overriding the one resolved from the AWS
+       configuration.
+   * - ``PDBSTORE_S3_PROFILE``
+     - Named AWS profile to authenticate with.
+
+Two behaviors differ from a store held on a local filesystem, and are worth
+knowing before moving a store to a bucket:
+
+Concurrent writes
+   An object store has no atomic append, so publishing a transaction reads the
+   store bookkeeping, extends it and writes it back. That sequence is guarded
+   by a conditional write and retried on conflict, so two builds publishing at
+   the same moment cannot overwrite one another. This requires a bucket that
+   supports conditional requests. AWS S3 does, and so does MinIO from release
+   ``2025-09-07`` on, which the test suite checks against a running server. On
+   an object store that silently ignores those requests, nothing fails and a
+   transaction is lost instead; ``S3BlobStore`` takes a ``conditional_writes``
+   argument to turn the guard off knowingly rather than by surprise.
+
+Unused files
+   S3 reports when an object was last written, never when it was last read. The
+   :ref:`pdbstore unused <commands_unused>` command therefore reports on the
+   date a symbol was published rather than on the date it was last downloaded.
+   Since a symbol file is written once and never modified, this amounts to the
+   age of the symbol.
 
 CLI
 ===
@@ -107,9 +185,9 @@ argument is the action that you want to perform. For example:
 
 .. code-block:: console
 
-   $ pdbstore add -f test.dll -t myproduct -v 1.0
-   $ pdbstore del -i 0000000092
-   $ pdbstore query -f test.dll
+   $ pdbstore add -p myproduct -v 1.0 test.dll
+   $ pdbstore del 92
+   $ pdbstore query test.dll
 
 Use the ``--help`` option to list the available action names:
 
