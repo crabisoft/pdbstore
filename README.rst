@@ -5,6 +5,11 @@ pdbstore
 
 ``pdbstore`` is a Python package providing command-line utility to manage PDB symbol store.
 
+A symbol store can be held on a local filesystem or in an Amazon S3 bucket, and
+keeps the same layout either way, so it stays readable by ``symsrv.dll`` and
+Visual Studio. An existing store can be moved from one to the other with the
+``pdbstore storage migrate`` command.
+
 
 Installation
 ------------
@@ -16,6 +21,12 @@ Use ``pip`` to install the latest stable version of ``pdbstore``:
 .. code-block:: console
 
    $ pip install --upgrade pdbstore
+
+To hold a symbol store in an S3 bucket, install the ``s3`` extra as well:
+
+.. code-block:: console
+
+   $ pip install --upgrade "pdbstore[s3]"
 
 The current development version is available on both `GitHub.com
 <https://github.com/crabisoft/pdbstore>`__ and can be

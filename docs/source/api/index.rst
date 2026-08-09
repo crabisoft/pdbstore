@@ -8,6 +8,12 @@ API reference
     config
     const
     exceptions
+    entities
+    usecases
+    adapters
+    drivers
+    factory
     io
+    util
     store
     report

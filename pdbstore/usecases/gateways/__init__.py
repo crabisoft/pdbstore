@@ -8,7 +8,9 @@ the blob store.
 Two gateways rather than one, because the storage administration interactors
 under :mod:`pdbstore.usecases.storage` genuinely work in terms of keys: for a
 migration, the blob store *is* the subject matter. Every other interactor is
-barred from importing :class:`BlobStore`, and the layering rules enforce it.
+barred from importing
+:class:`BlobStore <pdbstore.usecases.gateways.blob_store.BlobStore>`, and the
+layering rules enforce it.
 """
 
 from pdbstore.usecases.gateways.blob_store import BlobStat, BlobStore

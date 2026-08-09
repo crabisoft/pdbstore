@@ -16,16 +16,19 @@
 from __future__ import unicode_literals
 
 import os
+import pathlib
 import sys
 
-sys.path.append("../..")
+# Resolve the repository root from this file rather than from the working
+# directory: tox runs sphinx-build from the repository root while readthedocs
+# runs it from elsewhere, so a relative path resolves differently in each and
+# autodoc silently falls back to whatever copy of pdbstore happens to be
+# installed. An installed copy that predates a new module cannot import it,
+# which surfaces as "No module named pdbstore.<something>" for exactly the
+# modules that a plain "import pdbstore" does not already pull in.
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[2]))
 sys.path.append(os.path.dirname(__file__))
 import pdbstore  # noqa: E402. Needed purely for readthedocs' build
-
-# If extensions (or modules to document with autodoc) are in another directory,
-# add these directories to sys.path here. If the directory is relative to the
-# documentation root, use os.path.abspath to make it absolute, like shown here.
-sys.path.insert(0, os.path.abspath(".."))
 
 # -- General configuration ------------------------------------------------
 
@@ -113,9 +116,14 @@ todo_include_todos = True
 nitpick_ignore = [
     ("py:class", "pdbstore.typing.PathLike"),
     ("py:class", "pathlib.Path"),
+    # Python 3.13 moved the concrete class to pathlib._local.
+    ("py:class", "pathlib._local.Path"),
+    # Type variable: autodoc renders it in signatures but has nothing to link to.
+    ("py:class", "pdbstore.usecases.lookup.AnyTransaction"),
     ("py:class", "datetime.datetime"),
     ("py:class", "argparse.ArgumentParser"),
     ("py:obj", "typing.IO"),
+    ("py:obj", "typing.BinaryIO"),
     ("py:class", "abc.ABC"),
     ("py:class", "argparse.Namespace"),
     ("py:class", "enum.Enum"),

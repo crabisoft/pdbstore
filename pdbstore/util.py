@@ -105,7 +105,7 @@ def which(program: str, var_name: Optional[str] = None) -> Union[str, None]:
                     to locate the requested program. This variable will be used
                     first before to search it using PATH environment variable.
     :return: The full path name of the requested program if found, else None
-    to indicate that the program is not available.
+        to indicate that the program is not available.
     """
 
     def _is_exe(fpath: str) -> bool:

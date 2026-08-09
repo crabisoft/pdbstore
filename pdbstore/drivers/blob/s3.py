@@ -13,10 +13,12 @@ write is therefore made conditional on the object not having changed in the
 meantime, and retried when it has — see :meth:`S3BlobStore.append_bytes`.
 
 *Access times.* S3 reports when an object was last written, never when it was
-last read. :attr:`BlobStat.atime` therefore carries the modification time, and
-the ``unused`` analysis degrades from "nobody debugged this since" to "nobody
-published this since". For a symbol store, whose objects are written once and
-never modified, that amounts to the age of the symbol.
+last read.
+:attr:`BlobStat.atime <pdbstore.usecases.gateways.blob_store.BlobStat.atime>`
+therefore carries the modification time, and the ``unused`` analysis degrades
+from "nobody debugged this since" to "nobody published this since". For a
+symbol store, whose objects are written once and never modified, that amounts
+to the age of the symbol.
 """
 
 import os
