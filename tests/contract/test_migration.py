@@ -17,6 +17,8 @@ from pdbstore.usecases.query import QuerySymbolsInteractor
 from pdbstore.usecases.storage import MigrateStorageInteractor, VerifyStorageInteractor
 from pdbstore.usecases.store_state import StoreState
 
+from .conftest import build_blob_store
+
 
 @pytest.fixture(name="populated")
 def fixture_populated(tmp_path, test_data_native_dir):
@@ -117,3 +119,30 @@ def test_a_migrated_store_serves_the_same_answers(populated, test_data_native_di
     assert before.status == after.status
     assert [item["path"] for item in before.files] == [item["path"] for item in after.files]
     assert after.success() == 1
+
+
+def test_a_store_migrated_to_s3_still_answers(populated, test_data_native_dir, s3_client):
+    """A store moved into a bucket serves the same answers as on disk.
+
+    The end-to-end claim of the whole arrangement: the symbols were published
+    to a directory, moved by copying keys, and are found again through an
+    object store that the publishing code never knew about.
+    """
+    target = build_blob_store("s3", None, s3_client, name="migrated")
+
+    migration = MigrateStorageInteractor(populated, target).execute()
+    verification = VerifyStorageInteractor(populated, target).execute(deep=True)
+
+    assert migration.status == OpStatus.SUCCESS
+    assert verification.status == OpStatus.SUCCESS
+
+    files = [test_data_native_dir / "dummyapp.pdb"]
+    from_s3 = QuerySymbolsInteractor(
+        StoreState(SymSrvGateway(target, CabCompressor()), PdbSymbolFileReader())
+    ).execute(files)
+
+    assert from_s3.success() == 1
+    # The SymSrv layout is reproduced verbatim, so symsrv.dll still finds it.
+    assert "dummyapp.pdb/DBF7CE25C6DC4E0EA9AD889187E296A21/dummyapp.pdb" in [
+        item["path"].replace("\\", "/") for item in from_s3.files
+    ]

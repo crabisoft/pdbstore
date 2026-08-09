@@ -93,5 +93,18 @@ def _memory_from_uri(location: str) -> BlobStore:
     return MemoryBlobStore(urlparse(location).netloc or "memory")
 
 
+def _s3_from_uri(location: str) -> BlobStore:
+    """Build an S3 blob store out of an ``s3://`` URI.
+
+    Imported on demand so that boto3 stays optional: a store held on a local
+    filesystem must not require it to be installed.
+    """
+    # pylint: disable=import-outside-toplevel
+    from pdbstore.drivers.blob.s3 import S3BlobStore
+
+    return S3BlobStore.from_uri(location)
+
+
 register_scheme("file", _local_from_uri)
 register_scheme("memory", _memory_from_uri)
+register_scheme("s3", _s3_from_uri)

@@ -27,6 +27,9 @@ authors = [{ name = "Jacques Raphanel", email = "jrp@crabisoft.fr" }]
 keywords=["development", "symstore", "pdb", "pdbstore"]
 dependencies = ["colorama", "pefile", "Jinja2"]
 
+[project.optional-dependencies]
+s3 = ["boto3>=1.36"]  # 1.36 is the first release exposing S3 conditional writes
+
 [project.scripts]
 pdbstore = "pdbstore.cli.cli:main"
 
