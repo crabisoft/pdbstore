@@ -8,6 +8,11 @@ certain on a real one.
 
 Concurrent appends, the other object store specific, have a suite of their own
 in :mod:`tests.contract.test_s3_concurrency`.
+
+Unlike that one, this suite stays on the emulator. Its refusals come from a
+client stub the server never sees, and its batch deletions write a couple of
+thousand objects — over a network, that would buy wall-clock rather than
+confidence.
 """
 
 import pytest

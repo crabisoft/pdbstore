@@ -155,7 +155,11 @@ Concurrent writes
    store bookkeeping, extends it and writes it back. That sequence is guarded
    by a conditional write and retried on conflict, so two builds publishing at
    the same moment cannot overwrite one another. This requires a bucket that
-   supports conditional requests, which AWS S3 does.
+   supports conditional requests. AWS S3 does, and so does MinIO from release
+   ``2025-09-07`` on, which the test suite checks against a running server. On
+   an object store that silently ignores those requests, nothing fails and a
+   transaction is lost instead; ``S3BlobStore`` takes a ``conditional_writes``
+   argument to turn the guard off knowingly rather than by surprise.
 
 Unused files
    S3 reports when an object was last written, never when it was last read. The

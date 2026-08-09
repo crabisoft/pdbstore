@@ -9,6 +9,11 @@ same moment, one transaction silently gone.
 Each test drives a real interleaving — another writer commits in the window
 between the read and the write — rather than asserting that the right flags
 were passed.
+
+This is the suite that matters most on a live server: an object store that
+quietly ignores a conditional write passes everything else and loses a
+transaction here. It therefore runs against the emulator and, when one is
+offered, against the real thing.
 """
 
 import pytest
@@ -20,8 +25,6 @@ pytest.importorskip("moto")
 
 # pylint: disable=import-error,wrong-import-position
 from pdbstore.drivers.blob.s3 import S3BlobStore  # noqa: E402
-
-from .conftest import BUCKET  # noqa: E402
 
 KEY = "000Admin/server.txt"
 
@@ -50,14 +53,13 @@ class RacingClient:
 
 
 @pytest.fixture(name="stores")
-def fixture_stores(s3_client):
-    """Yield two stores over the same bucket, one of them racing."""
+def fixture_stores(s3_area):
+    """Yield two stores over the same corner of a bucket, one of them racing."""
 
     def _build(intruder, times=1, conditional_writes=True):
-        competitor = S3BlobStore(BUCKET, client=s3_client)
-        racing = S3BlobStore(
-            BUCKET,
-            client=RacingClient(s3_client, lambda: intruder(competitor), times),
+        competitor = s3_area.store()
+        racing = s3_area.store(
+            client=RacingClient(s3_area.client, lambda: intruder(competitor), times),
             conditional_writes=conditional_writes,
         )
         return racing, competitor
@@ -112,12 +114,11 @@ def test_repeated_contention_still_converges(stores):
     assert competitor.read_bytes(KEY) == b"xxxdone"
 
 
-def test_endless_contention_is_reported_rather_than_looping(s3_client):
+def test_endless_contention_is_reported_rather_than_looping(s3_area):
     """A writer that can never win gives up with a clear error."""
-    competitor = S3BlobStore(BUCKET, client=s3_client)
-    racing = S3BlobStore(
-        BUCKET,
-        client=RacingClient(s3_client, lambda: competitor.append_bytes(KEY, b"x"), times=99),
+    competitor = s3_area.store()
+    racing = s3_area.store(
+        client=RacingClient(s3_area.client, lambda: competitor.append_bytes(KEY, b"x"), times=99),
         max_attempts=3,
     )
 
@@ -143,10 +144,10 @@ def test_a_uri_without_a_bucket_is_rejected(s3_client):
         S3BlobStore.from_uri("s3://", client=s3_client)
 
 
-def test_two_prefixes_share_a_bucket_without_colliding(s3_client):
+def test_two_prefixes_share_a_bucket_without_colliding(s3_area):
     """Two stores in one bucket stay independent."""
-    first = S3BlobStore(BUCKET, prefix="release", client=s3_client)
-    second = S3BlobStore(BUCKET, prefix="snapshot", client=s3_client)
+    first = S3BlobStore(s3_area.bucket, prefix=f"{s3_area.prefix}/release", client=s3_area.client)
+    second = S3BlobStore(s3_area.bucket, prefix=f"{s3_area.prefix}/snapshot", client=s3_area.client)
 
     first.write_bytes("k.txt", b"one")
     second.write_bytes("k.txt", b"two")
