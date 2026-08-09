@@ -1,4 +1,4 @@
-"""S3 behaviours the shared contract cannot express.
+"""S3 behaviors the shared contract cannot express.
 
 The contract suite states what every blob store owes its callers. What is left
 here is what the object store protocol imposes on this one backend: a write can

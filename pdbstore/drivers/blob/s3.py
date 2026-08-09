@@ -441,7 +441,7 @@ class S3BlobStore(BlobStore):
         self._client.delete_objects(Bucket=self.bucket, Delete={"Objects": batch})
 
     def _describe(self, key: str) -> str:
-        """Name a key the way an operator would recognise it."""
+        """Name a key the way an operator would recognize it."""
         return f"{self.location}/{key}"
 
 

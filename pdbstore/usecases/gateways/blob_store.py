@@ -247,7 +247,7 @@ class BlobStore(ABC):
 
         Returns None for any backend that does not keep its blobs on a
         filesystem. Callers must always provide a fallback based on
-        :meth:`get_file`; this is strictly an optimisation used to hand a real
+        :meth:`get_file`; this is strictly an optimization used to hand a real
         path to an external tool such as the cab compressor.
 
         :param key: The key to be located.

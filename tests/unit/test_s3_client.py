@@ -33,7 +33,7 @@ class SessionRecorder:
         return self
 
     def client(self, service, **kwargs):
-        """Record the client request, and hand back something recognisable."""
+        """Record the client request, and hand back something recognizable."""
         self.service = service
         self.client_args = kwargs
         return self
@@ -62,7 +62,7 @@ def test_a_bare_environment_leaves_boto3_alone(session):
     assert session.client_args == {}
 
 
-def test_an_endpoint_url_is_honoured(session, monkeypatch):
+def test_an_endpoint_url_is_honored(session, monkeypatch):
     """The endpoint variable is what sends the store to MinIO or Ceph."""
     monkeypatch.setenv(const.ENV_PDBSTORE_S3_ENDPOINT_URL, "https://minio.local:9000")
 
@@ -74,7 +74,7 @@ def test_an_endpoint_url_is_honoured(session, monkeypatch):
     assert session.session_args == {}
 
 
-def test_a_profile_is_honoured(session, monkeypatch):
+def test_a_profile_is_honored(session, monkeypatch):
     """The profile variable selects a section of the shared AWS config."""
     monkeypatch.setenv(const.ENV_PDBSTORE_S3_PROFILE, "release")
 
@@ -83,7 +83,7 @@ def test_a_profile_is_honoured(session, monkeypatch):
     assert session.session_args == {"profile_name": "release"}
 
 
-def test_a_region_is_honoured(session, monkeypatch):
+def test_a_region_is_honored(session, monkeypatch):
     """The region variable reaches the session as well."""
     monkeypatch.setenv(const.ENV_PDBSTORE_S3_REGION, "eu-west-3")
 

@@ -2,7 +2,7 @@
 
 Every backend lays a store out identically, so migrating is a copy of keys
 rather than a replay of transactions. Nothing is parsed, nothing is
-re-serialised, and there is therefore no way for the copy to drift from the
+re-serialized, and there is therefore no way for the copy to drift from the
 original — the destination is byte for byte what the source was.
 
 These interactors are the reason

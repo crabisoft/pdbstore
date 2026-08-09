@@ -147,7 +147,7 @@ express:
    * - ``PDBSTORE_S3_PROFILE``
      - Named AWS profile to authenticate with.
 
-Two behaviours differ from a store held on a local filesystem, and are worth
+Two behaviors differ from a store held on a local filesystem, and are worth
 knowing before moving a store to a bucket:
 
 Concurrent writes

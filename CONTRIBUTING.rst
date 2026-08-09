@@ -249,7 +249,7 @@ Running the contract tests
 is replayed against every backend in turn. It runs as part of ``tox``, with the
 S3 backend served by an emulator.
 
-An emulator cannot answer whether a given object store really honours the
+An emulator cannot answer whether a given object store really honors the
 conditional writes that keep two simultaneous publications from overwriting one
 another. Point ``PDBSTORE_TEST_S3_ENDPOINT`` at a running server to have the
 whole suite replayed against it:

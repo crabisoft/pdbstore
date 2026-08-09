@@ -36,7 +36,7 @@ __all__ = [
 
 
 AnyTransaction = TypeVar("AnyTransaction", bound=Transaction)
-"""Whichever transaction flavour the caller works with.
+"""Whichever transaction flavor the caller works with.
 
 The compatibility layer hands out a subclass of
 :class:`Transaction <pdbstore.entities.transaction.Transaction>`, and these

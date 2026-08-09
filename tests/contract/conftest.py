@@ -8,7 +8,7 @@ S3 is exercised twice. ``s3`` runs against ``moto``, which emulates the parts
 that actually matter here — conditional writes, suffix ranges, batch deletes —
 rather than stubbing them out, and needs nothing but a pip install. ``live-s3``
 replays the very same suite against a server that is really listening, which is
-the only way to find out whether an implementation honours the conditional
+the only way to find out whether an implementation honors the conditional
 writes the append relies on; it is skipped, visibly, until
 ``PDBSTORE_TEST_S3_ENDPOINT`` points at one.
 """
@@ -33,7 +33,7 @@ ENV_LIVE_BUCKET = "PDBSTORE_TEST_S3_BUCKET"
 BACKENDS = ["local", "memory", "s3", "live-s3"]
 """Every backend the contract is replayed against."""
 
-S3_FLAVOURS = ["s3", "live-s3"]
+S3_FLAVORS = ["s3", "live-s3"]
 """The two ways the S3 backend itself is exercised: emulated, then for real."""
 
 
@@ -42,7 +42,7 @@ class S3Area:
 
     A live server keeps what a test leaves behind, so each test is given a key
     prefix of its own rather than the whole bucket. Handing that prefix around
-    together with the client is what lets one suite serve both flavours.
+    together with the client is what lets one suite serve both flavors.
     """
 
     def __init__(self, client, bucket, prefix):
@@ -108,7 +108,7 @@ def fixture_live_s3(request):
     _wipe(client, bucket, area.prefix)
 
 
-@pytest.fixture(name="s3_area", params=S3_FLAVOURS)
+@pytest.fixture(name="s3_area", params=S3_FLAVORS)
 def fixture_s3_area(request):
     """Yield the same clean corner, emulated and then real."""
     if request.param == "s3":
